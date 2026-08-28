@@ -26,10 +26,12 @@ def calendar_read_live(intent: str, user_id: str) -> dict[str, Any]:
             "q": q,
         },
     )
-    if res is None:
-        return {"ok": True, "evidence": "Calendar is not connected.", "mode": "mock"}
-    if res.status_code >= 400:
-        return {"ok": False, "evidence": "Calendar read failed.", "mode": "live"}
+    if res is None or res.status_code >= 400:
+        return {
+            "ok": True,
+            "evidence": "Calendar is not connected; using stated time.",
+            "mode": "mock" if res is None else "live",
+        }
     items = (res.json() or {}).get("items") or []
     if not items:
         return {
@@ -54,10 +56,12 @@ def gmail_search_live(intent: str, user_id: str) -> dict[str, Any]:
         "https://gmail.googleapis.com/gmail/v1/users/me/messages",
         {"q": q, "maxResults": "10"},
     )
-    if res is None:
-        return {"ok": True, "evidence": "Gmail is not connected.", "mode": "mock"}
-    if res.status_code >= 400:
-        return {"ok": False, "evidence": "Gmail search failed.", "mode": "live"}
+    if res is None or res.status_code >= 400:
+        return {
+            "ok": True,
+            "evidence": "No mail context; using the intent.",
+            "mode": "mock" if res is None else "live",
+        }
     messages = (res.json() or {}).get("messages") or []
     n = len(messages)
     context = ""

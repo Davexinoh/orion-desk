@@ -27,9 +27,11 @@ def calendar_read(intent: str, user_id: str | None = None, **_: Any) -> dict[str
 
     if has_grant(user_id) and user_id:
         return calendar_read_live(intent, user_id)
-    if _is_acme(intent):
-        return {"ok": True, "evidence": "Found event: Acme / Tomorrow 14:00", "mode": "mock"}
-    return {"ok": True, "evidence": "Found a matching event.", "mode": "mock"}
+    return {
+        "ok": True,
+        "evidence": "Calendar is not connected; using stated time.",
+        "mode": "mock",
+    }
 
 
 def gmail_search(intent: str, user_id: str | None = None, **_: Any) -> dict[str, Any]:
@@ -61,7 +63,8 @@ def web_search(intent: str, **_: Any) -> dict[str, Any]:
     if key:
         live = _web_search_live(intent, key)
         live.setdefault("mode", "live")
-        return live
+        if live.get("ok"):
+            return live
     return _web_search_mock(intent)
 
 
@@ -252,6 +255,8 @@ def _draft_body(intent: str, label: str) -> tuple[str, str, str]:
         if "brief" in low:
             return ("brief", "Brief", f"Brief for:\n{intent}")
         return ("agenda", "Draft", f"Draft for:\n{intent}\n\nNot sent.")
+    if "recipe" in want:
+        return ("doc", "Recipe", f"Recipe\n{intent}\n\nNot sent.")
     if "list" in low or "task" in want:
         return ("list", "Task list", f"Task list for:\n{intent}\n\nNot sent.")
     if "email" in low or "inbox" in want or "mail" in want:
