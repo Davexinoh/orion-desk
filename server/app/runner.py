@@ -7,7 +7,7 @@ from uuid import uuid4
 from .events import emit
 from .mission_seed import ACME_ID, LEGAL
 from .mission_store import MISSIONS
-from .planner import looks_like_acme, plan
+from .planner import looks_like_acme, looks_like_meeting, plan
 from .tools_mock import ADAPTERS, AUTO, GATED, TOOL_LABELS
 
 
@@ -66,7 +66,7 @@ def run_mission(user_id: str, intent: str) -> dict:
             if tool in GATED:
                 MISSIONS.set_step(mid, i, "blocked", "Needs approval.")
                 emit(mid, {"type": "step.blocked", "stepIndex": i, "reason": "Needs approval."})
-                ap = _approval(mid, user_id, intent, looks_like_acme(intent))
+                ap = _approval(mid, user_id, intent)
                 MISSIONS.add_approval(ap)
                 emit(mid, {"type": "approval.needed", "approvalId": ap["id"]})
                 blocked = True
@@ -135,16 +135,21 @@ def _run_auto(
     return result
 
 
-def _approval(mid: str, user_id: str, intent: str, acme: bool) -> dict:
-    if acme:
+def _approval(mid: str, user_id: str, intent: str) -> dict:
+    if looks_like_acme(intent):
         verb = "Send agenda to Jane, Mark, Priya, Dan"
         bar = "Send agenda to 4 attendees"
+        kind = "agenda"
+        action = "send-agenda"
+    elif looks_like_meeting(intent):
+        verb = "Send agenda to attendees"
+        bar = "Send agenda to attendees"
         kind = "agenda"
         action = "send-agenda"
     else:
         verb = "Send the draft"
         bar = "Send the draft"
-        kind = "agenda"
+        kind = "doc"
         action = "send-draft"
     return {
         "id": f"ap-{mid}",

@@ -1,23 +1,24 @@
 import { useState } from "react";
 import { useOutletContext } from "react-router-dom";
 import type { BoardOutlet } from "../components/AppShell";
-import { artifacts } from "../lib/demo-data";
+import { isDemoBoardId } from "../lib/missions-api";
 
 export default function Approvals() {
-  const { pending, doIt, keepDraft } = useOutletContext<BoardOutlet>();
+  const { pending, doIt, keepDraft, artifactsById } = useOutletContext<BoardOutlet>();
   const [selectedId, setSelectedId] = useState(pending[0]?.id ?? null);
   const [editing, setEditing] = useState(false);
 
-  const selected = pending.find((p) => p.id === selectedId) ?? pending[0] ?? null;
+  const rows = pending.filter((p) => !isDemoBoardId(p.mission_id));
+  const selected = rows.find((p) => p.id === selectedId) ?? rows[0] ?? null;
 
-  if (pending.length === 0) {
+  if (rows.length === 0) {
     return <p className="od-approvals-zero">Nothing needs your signature.</p>;
   }
 
   return (
     <div className="od-approvals">
       <div className="od-approvals-list">
-        {pending.map((row) => (
+        {rows.map((row) => (
           <div
             key={row.id}
             className={`od-approval-row${row.id === selected?.id ? " is-selected" : ""}`}
@@ -82,7 +83,7 @@ export default function Approvals() {
             <p className="od-preview-kicker">{editing ? "Draft" : "Preview"}</p>
             <h2 className="od-preview-title">{selected.verb_object}</h2>
             <pre className="od-preview-doc">
-              {artifacts[selected.mission_id]?.agenda ?? ""}
+              {artifactsById[selected.mission_id]?.agenda ?? ""}
             </pre>
           </>
         ) : null}

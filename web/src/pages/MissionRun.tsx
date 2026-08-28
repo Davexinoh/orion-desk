@@ -7,6 +7,7 @@ import {
   ACME_ID,
   ACME_STEPS,
   artifacts,
+  missions as seedMissions,
   type Mission,
   type MissionArtifacts,
   type MissionStep,
@@ -40,8 +41,10 @@ export default function MissionRun() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { missions, replaceMission, applyServer, openReceipt } = useOutletContext<BoardOutlet>();
-  const seedMission = missions.find((m) => m.id === id);
   const seed = isSeedMission(id);
+  const seedMission =
+    missions.find((m) => m.id === id) ??
+    (seed ? seedMissions.find((m) => m.id === id) : undefined);
   const [live, setLive] = useState<Mission | null>(null);
   const [liveArts, setLiveArts] = useState<MissionArtifacts | undefined>(undefined);
   const [tick, setTick] = useState<string | null>(null);

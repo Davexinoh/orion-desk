@@ -1,10 +1,7 @@
 from __future__ import annotations
 
-import asyncio
 import os
-from datetime import datetime, timezone
 from pathlib import Path
-from uuid import uuid4
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Request, Response
@@ -28,10 +25,8 @@ def _production() -> bool:
 if _production() and not (os.getenv("SESSION_SECRET") or "").strip():
     raise RuntimeError("SESSION_SECRET is required in production.")
 
-from .agent import apply_resolution, run_goal
 from .auth_email import EMAIL
 from .auth_telegram import bot_username, verify_telegram_login
-from .format_receipt import format_receipt
 from .approvals import ApprovalError, do_approval, keep_draft, list_needed
 from .google_oauth import (
     TOKENS as GOOGLE_TOKENS,
@@ -269,7 +264,12 @@ def list_missions(request: Request):
     uid = SESSIONS.get_user_id(request.cookies.get(COOKIE))
     if not uid:
         raise HTTPException(401, "No session.")
-    return {"missions": MISSIONS.list_for_user(uid)}
+    rows = [
+        m
+        for m in MISSIONS.list_for_user(uid)
+        if m.get("id") not in PUBLIC_MISSION_IDS and m.get("userId") == uid
+    ]
+    return {"missions": rows}
 
 
 def _mission_or_401(mission_id: str, request: Request) -> dict:
@@ -349,108 +349,37 @@ def state():
 
 @app.post("/api/goals")
 async def create_goal(body: GoalIn):
-    intent = body.intent.strip()
-    if not intent:
-        raise HTTPException(400, "Say what you want handled.")
-    gid = f"g-{uuid4().hex[:8]}"
-    goal = {
-        "id": gid,
-        "receipt_id": "",
-        "intent": intent,
-        "status": "running",
-        "created_at": datetime.now(timezone.utc).isoformat(),
-        "live_trace": ["On it."],
-        "artifacts": [],
-        "source": body.source,
-    }
-    STORE.upsert_goal(goal)
-    STORE.persist()
-    asyncio.create_task(run_goal(gid, intent))
-    return goal
+    raise HTTPException(410, "Gone. Use POST /missions.")
 
 
 @app.get("/api/goals/{gid}")
 def get_goal(gid: str):
-    goal = STORE.get_goal(gid)
-    if not goal:
-        raise HTTPException(404, "Run not found.")
-    receipt = STORE.get_receipt(goal.get("receipt_id") or gid)
-    return {"goal": goal, "receipt": receipt}
+    raise HTTPException(410, "Gone. Use GET /missions/{id}.")
 
 
 @app.get("/api/goals/{gid}/stream")
 async def stream_goal(gid: str):
-    goal = STORE.get_goal(gid)
-    if not goal:
-        raise HTTPException(404, "Run not found.")
-
-    async def gen():
-        rid = goal.get("receipt_id")
-        # Wait briefly for the agent to assign a receipt id.
-        for _ in range(50):
-            g = STORE.get_goal(gid)
-            if g and g.get("receipt_id"):
-                rid = g["receipt_id"]
-                break
-            await asyncio.sleep(0.1)
-        if not rid:
-            yield 'data: {"type":"error","message":"No receipt yet."}\n\n'
-            return
-        q = STORE.subscribe(rid)
-        receipt = STORE.get_receipt(rid)
-        if receipt:
-            import json
-
-            yield f"data: {json.dumps({'type': 'receipt', 'receipt': receipt, 'goal': STORE.get_goal(gid)})}\n\n"
-        try:
-            while True:
-                try:
-                    event = await asyncio.wait_for(q.get(), timeout=30)
-                except asyncio.TimeoutError:
-                    yield "data: {\"type\":\"ping\"}\n\n"
-                    continue
-                import json
-
-                yield f"data: {json.dumps(event)}\n\n"
-                rec = event.get("receipt") or {}
-                if rec.get("status") in ("completed", "awaiting_approval", "resolved", "partial_failure"):
-                    if rec.get("status") != "running":
-                        # keep stream open until resolved if approval pending
-                        if rec.get("status") in ("completed", "resolved", "partial_failure"):
-                            break
-        finally:
-            STORE.unsubscribe(rid, q)
-
-    return StreamingResponse(gen(), media_type="text/event-stream")
+    raise HTTPException(410, "Gone. Use GET /missions/{id}/events.")
 
 
 @app.get("/api/receipts")
 def receipts():
-    return STORE.snapshot()["receipts"]
+    raise HTTPException(410, "Gone.")
 
 
 @app.get("/api/receipts/{rid}/text")
 def receipt_text(rid: str):
-    r = STORE.get_receipt(rid)
-    if not r:
-        raise HTTPException(404, "Receipt not found.")
-    return {"text": format_receipt(r), "receipt": r}
+    raise HTTPException(410, "Gone.")
 
 
 @app.post("/api/receipts/{rid}/approve")
 async def approve(rid: str, body: DecisionIn):
-    nxt = await apply_resolution(rid, body.action_id, "approved")
-    if not nxt:
-        raise HTTPException(404, "Receipt not found.")
-    return nxt
+    raise HTTPException(410, "Gone. Use POST /approvals/{id}/do.")
 
 
 @app.post("/api/receipts/{rid}/decline")
 async def decline(rid: str, body: DecisionIn):
-    nxt = await apply_resolution(rid, body.action_id, "declined")
-    if not nxt:
-        raise HTTPException(404, "Receipt not found.")
-    return nxt
+    raise HTTPException(410, "Gone. Use POST /approvals/{id}/draft.")
 
 
 @app.get("/api/memory")

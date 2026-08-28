@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import re
 from typing import Any
 
 import httpx
@@ -193,13 +194,24 @@ TOOL_LABELS = {
 }
 
 
+_MEETING_RE = re.compile(
+    r"\b(meetings?|calls?|standup|stand-up|agenda)\b",
+    re.IGNORECASE,
+)
+
+
+def _is_meeting(intent: str) -> bool:
+    return bool(_MEETING_RE.search(intent or ""))
+
+
 def _is_acme(intent: str) -> bool:
-    t = intent.lower()
-    return "acme" in t and "meeting" in t
+    t = (intent or "").lower()
+    return "acme" in t and _is_meeting(intent)
 
 
 def _draft_body(intent: str, label: str) -> tuple[str, str, str]:
-    low = label.lower()
+    low = (label or "").lower()
+    want = (intent or "").lower()
     if _is_acme(intent):
         if "brief" in low:
             return (
@@ -232,10 +244,20 @@ def _draft_body(intent: str, label: str) -> tuple[str, str, str]:
             "5. Owners and next steps\n\n"
             "Not sent.",
         )
-    if "follow" in low:
-        return ("followUp", "Follow-up", f"Draft follow-up for:\n{intent}\n\nNot sent.")
-    if "prep" in low or "block" in low:
-        return ("calendar", "Prep block", "Prep block proposed. Not written.")
+    if _is_meeting(intent):
+        if "follow" in low:
+            return ("followUp", "Follow-up", f"Draft follow-up for:\n{intent}\n\nNot sent.")
+        if "prep" in low or "block" in low or "calendar" in low:
+            return ("calendar", "Prep block", "Prep block proposed. Not written.")
+        if "brief" in low:
+            return ("brief", "Brief", f"Brief for:\n{intent}")
+        return ("agenda", "Draft", f"Draft for:\n{intent}\n\nNot sent.")
+    if "list" in low or "task" in want:
+        return ("list", "Task list", f"Task list for:\n{intent}\n\nNot sent.")
+    if "email" in low or "inbox" in want or "mail" in want:
+        return ("email", "Email", f"Draft email for:\n{intent}\n\nNot sent.")
     if "brief" in low:
         return ("brief", "Brief", f"Brief for:\n{intent}")
-    return ("agenda", "Draft", f"Draft for:\n{intent}\n\nNot sent.")
+    if "follow" in low:
+        return ("followUp", "Follow-up", f"Draft follow-up for:\n{intent}\n\nNot sent.")
+    return ("doc", "Draft", f"Draft for:\n{intent}\n\nNot sent.")

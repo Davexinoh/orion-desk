@@ -197,6 +197,8 @@ class MissionStore:
     def create(self, bundle: dict[str, Any]) -> None:
         mid = bundle["id"]
         self._refuse_public(mid)
+        if mid in PUBLIC_IDS:
+            raise ValueError("public seed is read-only")
         with self._lock:
             if self._get_mission(mid):
                 raise ValueError("mission exists")
@@ -351,16 +353,27 @@ class MissionStore:
             self._conn.commit()
 
     def list_for_user(self, user_id: str) -> list[dict[str, Any]]:
+        if not user_id:
+            return []
         with self._lock:
             rows = self._conn.execute(
-                "SELECT id FROM missions WHERE user_id = ? ORDER BY started_at DESC",
+                """
+                SELECT id FROM missions
+                WHERE user_id = ?
+                  AND user_id IS NOT NULL
+                  AND user_id != ''
+                  AND id NOT IN ('acme-0491', 'failed-0502')
+                ORDER BY started_at DESC
+                """,
                 (user_id,),
             ).fetchall()
             ids = [r["id"] for r in rows]
         out = []
         for mid in ids:
+            if mid in PUBLIC_IDS:
+                continue
             item = self.get(mid)
-            if item:
+            if item and item.get("userId") == user_id and item.get("id") not in PUBLIC_IDS:
                 out.append(item)
         return out
 

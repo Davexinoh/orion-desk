@@ -65,6 +65,10 @@
   border-radius: 0;
 }
 
+.od-empty-example + .od-empty-example {
+  margin-top: 12px;
+}
+
 .od-empty-example:focus-visible {
   outline: 1px solid var(--accent);
   outline-offset: 2px;

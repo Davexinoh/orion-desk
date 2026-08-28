@@ -2,9 +2,28 @@ import type { Mission, MissionArtifacts, MissionStep, MissionStepStatus, Pending
 import type { Receipt } from "./types";
 
 export const SEED_IDS = new Set(["acme-0491", "failed-0502"]);
+const DEMO_BOARD_IDS = new Set([
+  "acme-0491",
+  "failed-0502",
+  "q2-benchmarks",
+  "investor-update",
+  "pricing-feedback",
+]);
 
 export function isSeedMission(id: string | undefined): boolean {
   return Boolean(id && SEED_IDS.has(id));
+}
+
+export function isDemoBoardId(id: string | undefined): boolean {
+  return Boolean(id && DEMO_BOARD_IDS.has(id));
+}
+
+const FORBIDDEN_INTENTS = new Set(["Draft investor update", "Sync pricing feedback"]);
+
+export function isForbiddenSeedCard(row: { id?: string; intent?: string }): boolean {
+  if (isDemoBoardId(row.id)) return true;
+  const intent = (row.intent || "").trim();
+  return FORBIDDEN_INTENTS.has(intent);
 }
 
 export type ServerMission = {
@@ -75,19 +94,29 @@ export function toMission(raw: ServerMission): Mission {
   };
 }
 
+export type ServerApproval = NonNullable<ServerMission["approvals"]>[number];
+
+export function toPendingApproval(
+  a: ServerApproval,
+  fallbackMissionId = "",
+  fallbackIntent = ""
+): PendingApproval {
+  return {
+    id: a.id,
+    mission_id: a.mission_id || a.missionId || fallbackMissionId,
+    action_id: a.action_id || a.id,
+    verb_object: a.verb_object || a.verbObject || "",
+    bar_label: a.bar_label || a.verbObject || a.verb_object || "",
+    parent_intent: a.parent_intent || fallbackIntent,
+    age: a.age || "now",
+    risk: a.risk || "External send",
+  };
+}
+
 export function toApprovals(raw: ServerMission): PendingApproval[] {
   return (raw.approvals || [])
     .filter((a) => a.status === "needed")
-    .map((a) => ({
-      id: a.id,
-      mission_id: a.mission_id || a.missionId || raw.id,
-      action_id: a.action_id || a.id,
-      verb_object: a.verb_object || a.verbObject || "",
-      bar_label: a.bar_label || a.verbObject || a.verb_object || "",
-      parent_intent: a.parent_intent || raw.intent,
-      age: a.age || "now",
-      risk: a.risk || "External send",
-    }));
+    .map((a) => toPendingApproval(a, raw.id, raw.intent));
 }
 
 export function toArtifacts(raw: ServerMission): MissionArtifacts | undefined {
@@ -95,15 +124,24 @@ export function toArtifacts(raw: ServerMission): MissionArtifacts | undefined {
   if (!list.length) return undefined;
   const out: MissionArtifacts = { brief: "", agenda: "", calendar: "", followUp: "", attendees: [] };
   for (const a of list) {
-    if (a.kind === "brief" || a.kind === "agenda" || a.kind === "calendar" || a.kind === "followUp") {
-      out[a.kind] = a.body;
-    }
+    if (a.kind === "brief" || a.kind === "doc" || a.kind === "list") out.brief = a.body;
+    else if (a.kind === "agenda") out.agenda = a.body;
+    else if (a.kind === "calendar") out.calendar = a.body;
+    else if (a.kind === "followUp" || a.kind === "email") out.followUp = a.body;
   }
   return out;
 }
 
 export function toReceipt(raw: ServerMission): Receipt | null {
   return raw.receipt ?? null;
+}
+
+export async function listMissions(): Promise<Response> {
+  return fetch("/missions", { credentials: "include" });
+}
+
+export async function listApprovals(): Promise<Response> {
+  return fetch("/approvals", { credentials: "include" });
 }
 
 export async function postMission(intent: string): Promise<Response> {

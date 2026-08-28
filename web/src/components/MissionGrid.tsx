@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { ACME_EXAMPLE, type Mission } from "../lib/demo-data";
+import { EMPTY_EXAMPLES, type Mission } from "../lib/demo-data";
 import MissionCard from "./MissionCard";
 import "./MissionGrid.css";
 
@@ -121,14 +121,17 @@ export default function MissionGrid({
 
       {visible.length === 0 ? (
         <div className="od-mission-empty">
-          <p>State an outcome. Desk will plan and act.</p>
-          <button
-            type="button"
-            className="od-empty-example"
-            onClick={() => onFillCommand?.(ACME_EXAMPLE)}
-          >
-            {ACME_EXAMPLE}
-          </button>
+          <p>State an outcome.</p>
+          {EMPTY_EXAMPLES.map((line) => (
+            <button
+              key={line}
+              type="button"
+              className="od-empty-example"
+              onClick={() => onFillCommand?.(line)}
+            >
+              {line}
+            </button>
+          ))}
         </div>
       ) : (
         <div className="od-mission-cols">

@@ -78,6 +78,12 @@ export const ACME_ID = "acme-0491";
 export const ACME_EXAMPLE =
   "I have a meeting with Acme tomorrow at 2 PM. I haven't prepared anything. Handle it.";
 
+export const EMPTY_EXAMPLES = [
+  "Turn these notes into a client update and a task list.",
+  "What in my inbox is waiting on me this week.",
+  "I have a meeting with Acme tomorrow at 2 PM. Handle it.",
+] as const;
+
 export const ACME_ATTENDEES = ["Jane", "Mark", "Priya", "Dan"] as const;
 
 export const ACME_STEPS: MissionStep[] = [

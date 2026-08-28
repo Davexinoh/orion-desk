@@ -6,27 +6,34 @@ import ReceiptDrawer from "./ReceiptDrawer";
 import {
   ACME_ID,
   approvals as seedApprovals,
+  artifacts as seedArtifacts,
   missions as seedMissions,
   receiptForMission,
   type Mission,
+  type MissionArtifacts,
   type PendingApproval,
 } from "../lib/demo-data";
 import { useAuth } from "../lib/AuthContext";
 import {
+  isDemoBoardId,
+  isForbiddenSeedCard,
   isSeedMission,
+  listApprovals,
+  listMissions,
   postApprovalDo,
   postApprovalDraft,
   postMission,
   toApprovals,
+  toArtifacts,
   toMission,
+  toPendingApproval,
   toReceipt,
+  type ServerApproval,
   type ServerMission,
 } from "../lib/missions-api";
 import type { Receipt } from "../lib/types";
 
 type BoardState = { missions: Mission[]; pending: PendingApproval[] };
-
-const userBoards = new Map<string, BoardState>();
 
 function cloneSeed(): BoardState {
   return {
@@ -35,13 +42,9 @@ function cloneSeed(): BoardState {
   };
 }
 
-function boardFor(scope: string): BoardState {
-  if (scope === "public" || scope === "public-acme") return cloneSeed();
-  const existing = userBoards.get(scope);
-  if (existing) return existing;
-  const fresh = cloneSeed();
-  userBoards.set(scope, fresh);
-  return fresh;
+function acmeArtifactMap(): Record<string, MissionArtifacts> {
+  const arts = seedArtifacts[ACME_ID];
+  return arts ? { [ACME_ID]: arts } : {};
 }
 
 const rail = [
@@ -80,6 +83,8 @@ export type BoardOutlet = {
   onSelect: (id: string) => void;
   onFillCommand: (intent: string) => void;
   pending: PendingApproval[];
+  artifactsById: Record<string, MissionArtifacts>;
+  receiptsById: Record<string, Receipt>;
   doIt: (id: string) => void;
   keepDraft: (id: string) => void;
   replaceMission: (mission: Mission) => void;
@@ -102,51 +107,134 @@ export default function AppShell() {
   const isPublicAcme = location.pathname.replace(/\/+$/, "") === `/desk/m/${ACME_ID}`;
   const boardScope = isPublicAcme ? "public-acme" : user?.userId ?? "public";
   const [command, setCommand] = useState("");
-  const [missions, setMissions] = useState<Mission[]>(() => boardFor(boardScope).missions);
-  const [pending, setPending] = useState<PendingApproval[]>(() => boardFor(boardScope).pending);
+  const [missions, setMissions] = useState<Mission[]>(() =>
+    isPublicAcme ? cloneSeed().missions : []
+  );
+  const [pending, setPending] = useState<PendingApproval[]>(() =>
+    isPublicAcme ? cloneSeed().pending : []
+  );
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [receiptsById, setReceiptsById] = useState<Record<string, Receipt>>({});
+  const [artifactsById, setArtifactsById] = useState<Record<string, MissionArtifacts>>(() =>
+    isPublicAcme ? acmeArtifactMap() : {}
+  );
   const posting = useRef(false);
+  const liveLoad = useRef(0);
 
-  const persistScope = useRef(boardScope);
+  const applyLiveMissions = useCallback((rows: ServerMission[]) => {
+    const live = rows.filter((raw) => !isForbiddenSeedCard(raw));
+    setMissions((prev) => {
+      const fromServer = live.map(toMission);
+      const extras = prev.filter(
+        (m) => !isDemoBoardId(m.id) && !fromServer.some((s) => s.id === m.id)
+      );
+      return [...extras, ...fromServer];
+    });
+    setReceiptsById((prev) => {
+      const next: Record<string, Receipt> = {};
+      for (const [id, receipt] of Object.entries(prev)) {
+        if (!isDemoBoardId(id)) next[id] = receipt;
+      }
+      for (const raw of live) {
+        const receipt = toReceipt(raw);
+        if (receipt) next[raw.id] = receipt;
+      }
+      return next;
+    });
+    setArtifactsById((prev) => {
+      const next: Record<string, MissionArtifacts> = {};
+      for (const [id, arts] of Object.entries(prev)) {
+        if (!isDemoBoardId(id)) next[id] = arts;
+      }
+      for (const raw of live) {
+        const arts = toArtifacts(raw);
+        if (arts) next[raw.id] = arts;
+      }
+      return next;
+    });
+  }, []);
 
-  useEffect(() => {
-    const board = boardFor(boardScope);
-    setMissions(board.missions);
-    setPending(board.pending);
-    setSelectedId(null);
-    setCommand("");
-  }, [boardScope]);
-
-  useEffect(() => {
-    if (persistScope.current !== boardScope) {
-      persistScope.current = boardScope;
+  const loadLive = useCallback(async () => {
+    const gen = ++liveLoad.current;
+    const [mRes, aRes] = await Promise.all([listMissions(), listApprovals()]);
+    if (gen !== liveLoad.current) return;
+    if (mRes.status === 401 || aRes.status === 401) {
+      navigate("/sign-in?next=/desk");
       return;
     }
-    if (!user?.userId || isPublicAcme) return;
-    userBoards.set(user.userId, { missions, pending });
-  }, [missions, pending, user?.userId, isPublicAcme, boardScope]);
+    if (mRes.ok) {
+      const body = (await mRes.json()) as { missions?: ServerMission[] };
+      applyLiveMissions(body.missions || []);
+    }
+    if (aRes.ok) {
+      const body = (await aRes.json()) as { approvals?: ServerApproval[] };
+      const fromServer = (body.approvals || [])
+        .map((a) => toPendingApproval(a))
+        .filter((p) => !isDemoBoardId(p.mission_id));
+      setPending((prev) => {
+        const extras = prev.filter(
+          (p) => !isDemoBoardId(p.mission_id) && !fromServer.some((s) => s.id === p.id)
+        );
+        return [...extras, ...fromServer];
+      });
+    }
+  }, [applyLiveMissions, navigate]);
 
-  const approvalCount = pending.length;
-  const selected = missions.find((m) => m.id === selectedId) ?? null;
+  useEffect(() => {
+    setSelectedId(null);
+    setCommand("");
+    if (isPublicAcme) {
+      liveLoad.current += 1;
+      const board = cloneSeed();
+      setMissions(board.missions);
+      setPending(board.pending);
+      setReceiptsById({});
+      setArtifactsById(acmeArtifactMap());
+      return;
+    }
+    liveLoad.current += 1;
+    setMissions([]);
+    setPending([]);
+    setReceiptsById({});
+    setArtifactsById({});
+    if (!user?.userId) return;
+    void loadLive();
+  }, [boardScope, isPublicAcme, loadLive, user?.userId]);
+
+  const deskPending = isPublicAcme
+    ? pending
+    : pending.filter((p) => !isDemoBoardId(p.mission_id));
+  const approvalCount = deskPending.length;
+  const selected =
+    missions.find((m) => m.id === selectedId) ??
+    (selectedId && isSeedMission(selectedId)
+      ? seedMissions.find((m) => m.id === selectedId) ?? null
+      : null);
   const isMissions = location.pathname === "/desk";
   const runMatch = location.pathname.match(/^\/desk\/m\/([^/]+)/);
   const runId = runMatch?.[1] ?? null;
 
   const applyServer = useCallback((raw: ServerMission) => {
+    if (isForbiddenSeedCard(raw)) return;
     const mapped = toMission(raw);
     const nextPending = toApprovals(raw);
     setMissions((prev) => {
-      const rest = prev.filter((m) => m.id !== mapped.id);
+      const rest = prev.filter((m) => m.id !== mapped.id && !isForbiddenSeedCard(m));
       return [mapped, ...rest];
     });
     setPending((prev) => {
-      const others = prev.filter((p) => p.mission_id !== mapped.id);
+      const others = prev.filter(
+        (p) => p.mission_id !== mapped.id && !isDemoBoardId(p.mission_id)
+      );
       return [...nextPending, ...others];
     });
     const receipt = toReceipt(raw);
     if (receipt) {
       setReceiptsById((prev) => ({ ...prev, [mapped.id]: receipt }));
+    }
+    const arts = toArtifacts(raw);
+    if (arts) {
+      setArtifactsById((prev) => ({ ...prev, [mapped.id]: arts }));
     }
   }, []);
 
@@ -198,11 +286,11 @@ export default function AppShell() {
   }
 
   const barRow = useMemo(() => {
-    if (runId) return pending.find((p) => p.mission_id === runId) ?? null;
-    if (selectedId) return pending.find((p) => p.mission_id === selectedId) ?? null;
-    if (isMissions) return pending[0] ?? null;
+    if (runId) return deskPending.find((p) => p.mission_id === runId) ?? null;
+    if (selectedId) return deskPending.find((p) => p.mission_id === selectedId) ?? null;
+    if (isMissions) return deskPending[0] ?? null;
     return null;
-  }, [pending, selectedId, runId, isMissions]);
+  }, [deskPending, selectedId, runId, isMissions]);
 
   const showBar = Boolean(barRow) && (isMissions || Boolean(runId) || Boolean(selected));
 
@@ -259,7 +347,9 @@ export default function AppShell() {
     selectedId,
     onSelect: setSelectedId,
     onFillCommand: setCommand,
-    pending,
+    pending: deskPending,
+    artifactsById,
+    receiptsById,
     doIt,
     keepDraft,
     replaceMission: (mission) => {
@@ -268,12 +358,21 @@ export default function AppShell() {
     applyServer,
     openReceipt: setSelectedId,
     resetDemo: () => {
-      const fresh = cloneSeed();
-      if (user?.userId && !isPublicAcme) userBoards.set(user.userId, fresh);
-      setMissions(fresh.missions);
-      setPending(fresh.pending);
       setSelectedId(null);
       setCommand("");
+      if (isPublicAcme) {
+        const fresh = cloneSeed();
+        setMissions(fresh.missions);
+        setPending(fresh.pending);
+        setReceiptsById({});
+        setArtifactsById(acmeArtifactMap());
+        return;
+      }
+      setMissions([]);
+      setPending([]);
+      setReceiptsById({});
+      setArtifactsById({});
+      if (user?.userId) void loadLive();
     },
   };
 

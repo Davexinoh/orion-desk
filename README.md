@@ -58,7 +58,7 @@ Start:
 python -m uvicorn app.main:app --host 0.0.0.0 --port $PORT --app-dir server
 ```
 
-`nixpacks.toml` / `railway.toml` run those. Production refuses to boot without `SESSION_SECRET`. Cookie `Secure` is on when `APP_ORIGIN` is `https://`. CORS allows `APP_ORIGIN`. `/` and `/desk/m/acme-0491` stay public.
+`nixpacks.toml` / `railway.toml` / `railpack.json` run those. Railway start command: `python -m uvicorn app.main:app --host 0.0.0.0 --port $PORT --app-dir server`. Production refuses to boot without `SESSION_SECRET`. Cookie `Secure` is on when `APP_ORIGIN` is `https://`. CORS allows `APP_ORIGIN`. `/` and `/desk/m/acme-0491` stay public.
 
 Env (names only):
 
