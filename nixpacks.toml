@@ -1,16 +1,10 @@
 providers = ["python", "node"]
 
-[phases.setup]
-nixPkgs = ["python312", "python312Packages.pip", "nodejs_20"]
-
-[phases.install]
-cmds = [
-  "pip install -r server/requirements.txt",
-  "npm ci --prefix web",
-]
-
 [phases.build]
-cmds = ["npm run build --prefix web"]
+cmds = [
+  "npm ci --prefix web",
+  "npm run build --prefix web",
+]
 
 [start]
 cmd = "python -m uvicorn app.main:app --host 0.0.0.0 --port $PORT --app-dir server"
