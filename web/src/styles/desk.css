@@ -1,0 +1,930 @@
+/* App chrome. Gate 4 tokens only. gold.css must not win here. */
+
+.od-app-shell,
+.od-mission-card,
+.od-mission-grid,
+.od-command-bar,
+.od-command,
+.od-rail,
+.od-drawer,
+.od-drawer-overlay,
+.od-approval-bar,
+.od-approvals,
+.od-run,
+.od-plan,
+.od-artifacts,
+.od-memory,
+.od-settings,
+.od-tg {
+  font-family: var(--font-sans);
+  color: var(--text);
+  background-image: none;
+  box-shadow: none;
+  filter: none;
+  backdrop-filter: none;
+}
+
+.od-app-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  overflow-x: hidden;
+}
+
+.od-app-shell :focus-visible,
+.od-command-bar:focus-visible,
+.od-mission-card:focus-visible,
+.od-drawer-x:focus-visible,
+.od-btn:focus-visible {
+  outline: 1px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.od-app-shell .od-top {
+  height: 56px;
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--line);
+  background: var(--bg);
+}
+
+.od-app-shell .od-top-inner {
+  height: 56px;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.od-session-name {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.od-app-shell .wordmark {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0;
+  color: var(--text);
+}
+
+.od-app-shell .wordmark::before {
+  display: none;
+}
+
+.od-app-shell .wordmark span {
+  font-family: var(--font-serif);
+  font-style: normal;
+  font-weight: 400;
+}
+
+.od-compass {
+  display: block;
+  color: var(--text);
+  flex-shrink: 0;
+}
+
+.od-command {
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--line);
+  background: var(--bg);
+  padding: 0 16px 8px;
+}
+
+.od-command-bar {
+  display: block;
+  width: 100%;
+  height: 48px;
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  border: 0;
+  border-radius: 0;
+  font-family: var(--font-serif);
+  font-size: 16px;
+}
+
+.od-command-bar::placeholder {
+  color: var(--text-faint);
+  font-style: italic;
+}
+
+.od-command-bar:focus {
+  outline: none;
+}
+
+.od-command-bar:focus-visible {
+  outline: 1px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.od-command-help {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin: 0;
+  line-height: 1.45;
+}
+
+.od-app-body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+.od-rail {
+  width: 220px;
+  flex-shrink: 0;
+  border-right: 1px solid var(--line);
+  background: var(--bg);
+  padding: 16px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.od-rail a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 32px;
+  padding: 0 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted);
+  border-radius: var(--r-sm);
+}
+
+.od-rail a[aria-current="page"] {
+  color: var(--text);
+  background: var(--bg-elev-1);
+}
+
+.od-rail-badge {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--warn);
+}
+
+.od-canvas {
+  flex: 1;
+  min-width: 0;
+  padding: 24px;
+  overflow: auto;
+}
+
+.od-placeholder-title {
+  font-family: var(--font-sans);
+  font-size: 20px;
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+.od-placeholder-body {
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.od-app-shell .od-mobile-nav {
+  display: none;
+  border-top: 1px solid var(--line);
+  background: var(--bg);
+  position: sticky;
+  bottom: 0;
+  justify-content: space-around;
+  padding: 12px 8px 14px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.od-app-shell .od-mobile-nav a[aria-current="page"] {
+  color: var(--text);
+}
+
+.od-drawer-root {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+}
+
+.od-drawer-overlay {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  border-radius: 0;
+  background: rgba(11, 12, 10, 0.45);
+  cursor: pointer;
+}
+
+.od-drawer {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(420px, 100%);
+  min-width: min(380px, 100%);
+  background: var(--bg-elev-1);
+  border-left: 1px solid var(--line);
+  border-radius: 0;
+  padding: 48px 20px 24px;
+  overflow: auto;
+}
+
+.od-drawer .od-receipt {
+  max-width: none;
+}
+
+.od-print {
+  position: absolute;
+  top: 12px;
+  right: 52px;
+}
+
+.od-drawer-x {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: var(--bg-elev-1);
+  color: var(--text-muted);
+  font-size: 18px;
+  line-height: 1;
+}
+
+.od-drawer-x:hover {
+  color: var(--text);
+}
+
+.od-drawer-x:focus-visible {
+  outline: 1px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.od-approval-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 48px;
+  padding: 8px 16px;
+  border-top: 1px solid var(--line);
+  background: var(--bg-elev-1);
+  position: sticky;
+  bottom: 0;
+  z-index: 15;
+}
+
+.od-approval-bar-label {
+  font-family: var(--font-serif);
+  font-size: 16px;
+  color: var(--text);
+}
+
+.od-approval-bar-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.od-app-shell:has(.od-approval-bar) .od-canvas {
+  padding-bottom: 72px;
+}
+
+.od-btn {
+  height: 32px;
+  padding: 0 12px;
+  border-radius: var(--r-md);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.od-btn-do {
+  background: var(--accent);
+  border: 1px solid var(--accent);
+  color: var(--bg);
+}
+
+.od-btn-ghost {
+  background: transparent;
+  border: 1px solid var(--line-strong);
+  color: var(--text-muted);
+}
+
+.od-btn-ghost:hover {
+  color: var(--text);
+}
+
+.od-btn:focus-visible {
+  outline: 1px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.od-approvals {
+  display: grid;
+  grid-template-columns: minmax(240px, 1fr) minmax(280px, 1.2fr);
+  gap: 0;
+  min-height: 100%;
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  background: var(--bg-elev-1);
+}
+
+.od-approvals-list {
+  border-right: 1px solid var(--line);
+}
+
+.od-approval-row {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 16px;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  background: var(--bg-elev-1);
+  cursor: pointer;
+}
+
+.od-approval-row.is-selected {
+  background: var(--bg-elev-2);
+}
+
+.od-approval-verb {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+.od-approval-parent {
+  font-family: var(--font-serif);
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
+.od-approval-meta {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+.od-approval-row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.od-approvals-preview {
+  padding: 20px 24px;
+  background: var(--bg);
+}
+
+.od-preview-kicker {
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.od-preview-title {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 16px;
+}
+
+.od-preview-doc {
+  font-family: var(--font-serif);
+  font-size: 16px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  margin: 0;
+  color: var(--text);
+}
+
+.od-approvals-zero {
+  font-family: var(--font-serif);
+  font-size: 16px;
+  color: var(--text);
+}
+
+.od-run-kicker {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.od-run-kicker a {
+  color: var(--text-muted);
+}
+
+.od-run-intent {
+  font-family: var(--font-serif);
+  font-size: 20px;
+  font-weight: 400;
+  line-height: 1.25;
+  max-width: 42ch;
+  margin-bottom: 12px;
+}
+
+.od-run-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.od-run-log {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--text);
+  background: var(--bg-elev-1);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  padding: 12px 16px;
+  margin: 0 0 16px;
+  white-space: pre-wrap;
+}
+
+.od-receipt-index {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.od-receipt-index-row {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 12px 0;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  background: none;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--text);
+  line-height: 1.45;
+}
+
+.od-run-split {
+  display: grid;
+  grid-template-columns: 58fr 42fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.od-plan-tick {
+  font-size: 13px;
+  color: var(--text);
+  margin-bottom: 12px;
+}
+
+.od-plan-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.od-plan-list li {
+  display: grid;
+  grid-template-columns: 16px 1fr;
+  gap: 10px;
+  align-items: start;
+}
+
+.od-plan-mark {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.od-plan-list .is-done .od-plan-mark {
+  color: var(--done);
+}
+
+.od-plan-list .is-blocked .od-plan-mark {
+  color: var(--warn);
+}
+
+.od-plan-list .is-failed .od-plan-mark {
+  color: var(--danger);
+}
+
+.od-plan-list .is-running .od-plan-mark {
+  color: var(--running);
+}
+
+.od-plan-label {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 400;
+}
+
+.od-plan-evidence {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.od-artifact-tabs {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.od-artifact-tabs button {
+  background: none;
+  border: 0;
+  border-radius: 0;
+  padding: 8px 0;
+  font-size: 13px;
+  color: var(--text-faint);
+}
+
+.od-artifact-tabs button.is-on {
+  color: var(--text);
+  border-bottom: 1px solid var(--text);
+}
+
+.od-artifact-paper {
+  background: var(--bg-elev-1);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  padding: 20px 24px;
+  min-height: 240px;
+}
+
+.od-artifact-paper pre {
+  font-family: var(--font-serif);
+  font-size: 16px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  margin: 0;
+}
+
+.od-artifact-empty {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.od-page-title {
+  font-family: var(--font-sans);
+  font-size: 20px;
+  font-weight: 500;
+  margin-bottom: 24px;
+}
+
+.od-memory-section,
+.od-settings-section {
+  margin-bottom: 32px;
+}
+
+.od-memory-section h2,
+.od-settings-section h2 {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+.od-memory-group {
+  margin-bottom: 20px;
+}
+
+.od-memory-group h3 {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+.od-fact-list {
+  list-style: none;
+  margin: 0 0 8px;
+  padding: 0;
+}
+
+.od-fact-list li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+  font-family: var(--font-serif);
+  font-size: 16px;
+}
+
+.od-fact-x {
+  background: none;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  color: var(--text-faint);
+}
+
+.od-fact-x:hover {
+  color: var(--text);
+}
+
+.od-fact-add {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.od-fact-add input,
+.od-settings-field input {
+  flex: 1;
+  height: 32px;
+  padding: 0 10px;
+  background: var(--bg-elev-1);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  font-family: var(--font-sans);
+  font-size: 13px;
+}
+
+.od-settings-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-muted);
+  max-width: 320px;
+}
+
+.od-tool-rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-width: 420px;
+}
+
+.od-tool-rows li {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 14px;
+}
+
+.od-tool-state {
+  color: var(--text-muted);
+}
+
+.od-radio {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 8px 0;
+  font-size: 14px;
+  max-width: 48ch;
+}
+
+.od-settings-note {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+.od-danger-confirm {
+  display: flex;
+  gap: 8px;
+}
+
+.od-tg-note {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin: -16px 0 24px;
+}
+
+.od-tg-phone {
+  max-width: 420px;
+  margin: 0 auto;
+  padding: 16px 12px 24px;
+  background: var(--bg-elev-1);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+}
+
+.od-tg-label {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  margin: 16px 8px 6px;
+}
+
+.od-tg-msg {
+  background: var(--bg-elev-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  padding: 12px 14px;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.od-tg-msg p + p {
+  margin-top: 4px;
+}
+
+.od-tg-msg.is-user {
+  font-family: var(--font-serif);
+  background: var(--bg-elev-3);
+}
+
+.od-tg-brand {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.od-tg-receipt {
+  overflow: auto;
+}
+
+.od-tg-receipt .od-receipt {
+  max-width: none;
+}
+
+.od-tg-keys {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.od-tg-keys span {
+  display: block;
+  text-align: center;
+  padding: 8px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-md);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.od-tg-artifact pre {
+  font-family: var(--font-serif);
+  font-size: 15px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  margin: 0;
+}
+
+.od-tool-state a {
+  color: var(--text);
+}
+
+@media (max-width: 768px) {
+  .od-run-split {
+    grid-template-columns: 1fr;
+  }
+
+  .od-approvals {
+    grid-template-columns: 1fr;
+  }
+
+  .od-rail {
+    display: none;
+  }
+
+  .od-app-shell .od-mobile-nav {
+    display: flex;
+  }
+
+  .od-canvas {
+    padding: 16px 16px 80px;
+  }
+
+  .od-drawer {
+    inset: 0;
+    width: 100%;
+    min-width: 0;
+    border-left: 0;
+    padding: 48px 16px 24px;
+  }
+
+  .od-approval-bar {
+    position: sticky;
+    bottom: 52px;
+    z-index: 15;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .od-approval-bar-label {
+    flex: 1 1 100%;
+  }
+
+  .od-approval-bar-actions {
+    width: 100%;
+  }
+
+  .od-approval-bar-actions .od-btn {
+    flex: 1;
+    height: 44px;
+  }
+
+  .od-command-bar,
+  .od-run-intent,
+  .od-mission-intent {
+    overflow-wrap: anywhere;
+  }
+}
+
+@media print {
+  .od-top,
+  .od-command,
+  .od-rail,
+  .od-canvas,
+  .od-mobile-nav,
+  .od-approval-bar,
+  .od-drawer-overlay,
+  .od-drawer-x,
+  .od-print,
+  .od-receipt-actions {
+    display: none !important;
+  }
+
+  .od-drawer-root,
+  .od-drawer {
+    position: static;
+    inset: auto;
+    width: auto;
+    min-width: 0;
+    height: auto;
+    overflow: visible;
+    background: #fff;
+    border: 0;
+    padding: 0;
+  }
+
+  .od-receipt {
+    background: #fff;
+    color: #111;
+    border: 1px solid #ccc;
+    box-shadow: none;
+    max-width: none;
+  }
+
+  .od-receipt-intent,
+  .od-receipt-lines,
+  .od-receipt-need-row p,
+  .od-receipt-legal {
+    color: #111;
+  }
+
+  .od-receipt-kicker,
+  .od-receipt-id,
+  .od-receipt-totals dt {
+    color: #444;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .od-app-shell *,
+  .od-app-shell *::before,
+  .od-app-shell *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .od-drawer,
+  .od-drawer-overlay,
+  .od-drawer-root {
+    transform: none;
+    animation: none;
+    transition: none;
+  }
+}

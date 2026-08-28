@@ -1,0 +1,598 @@
+/* gold.css — landing only. Must not restyle app chrome or Gate 19 components. */
+
+.landing-root {
+  --color-bg: #07080b;
+  --color-bg-raised: #0c0d11;
+  --color-bg-inset: #050507;
+  --color-border: rgba(255, 255, 255, 0.07);
+  --color-border-strong: rgba(255, 255, 255, 0.12);
+  --color-accent: #22d3ee;
+  --color-accent-dim: #0e7490;
+  --color-accent-glow: rgba(34, 211, 238, 0.18);
+  --color-on-accent: #041016;
+  --color-text-primary: #f4f1ea;
+  --color-text-secondary: #9a958c;
+  --color-text-muted: #5e5a54;
+  --font-display: "Syne", "JetBrains Mono", sans-serif;
+  --font-serif: "Instrument Serif", "Times New Roman", serif;
+  --font-mono: "JetBrains Mono", "IBM Plex Mono", ui-monospace, monospace;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --radius-full: 999px;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-snap: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease: var(--ease-out);
+  position: relative;
+  z-index: 1;
+  background:
+    radial-gradient(ellipse 80% 55% at 18% 8%, rgba(34, 211, 238, 0.07) 0%, transparent 55%),
+    radial-gradient(ellipse 50% 40% at 88% 18%, rgba(244, 241, 234, 0.03) 0%, transparent 50%),
+    var(--color-bg);
+  color: var(--color-text-primary);
+  font-family: var(--font-mono);
+}
+
+.landing-root::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image: url("/orion-mark.svg");
+  background-repeat: no-repeat;
+  background-size: min(42vw, 520px);
+  background-position: 108% -8%;
+  opacity: 0.07;
+}
+
+.landing-root::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 80;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.landing-root h1,
+.landing-root h2,
+.landing-root h3 {
+  font-family: var(--font-display);
+  letter-spacing: -0.04em;
+  line-height: 1.05;
+  text-wrap: balance;
+  font-weight: 700;
+}
+
+.landing-root .page-wrap {
+  width: min(1280px, calc(100% - 40px));
+}
+
+/* ── nav ── */
+
+.landing-root .topbar {
+  height: 72px;
+  border-bottom: 0;
+}
+
+.landing-root > .topbar,
+.landing-root > header.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  width: min(1280px, calc(100% - 40px));
+  margin: 0 auto;
+  background: transparent;
+}
+
+.landing-root .wordmark {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.28em;
+}
+
+.landing-root .wordmark::before {
+  content: "";
+  width: 22px;
+  height: 22px;
+  background: url("/orion-mark.svg") center / contain no-repeat;
+  flex-shrink: 0;
+}
+
+.landing-root .nav-links a {
+  position: relative;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+
+.landing-root .nav-links a::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -4px;
+  height: 1px;
+  background: var(--color-text-primary);
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.35s var(--ease-snap);
+}
+
+.landing-root .nav-links a:hover::after,
+.landing-root .nav-links a[aria-current="page"]::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+.landing-root .nav-links a:hover {
+  color: var(--color-text-primary);
+}
+
+.landing-root .btn {
+  height: 40px;
+  padding: 0 18px;
+  border-radius: var(--radius-full);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-size: 11px;
+  transition:
+    transform 0.4s var(--ease-snap),
+    box-shadow 0.4s var(--ease-snap),
+    background 0.3s var(--ease-out),
+    border-color 0.3s var(--ease-out),
+    color 0.3s var(--ease-out);
+}
+
+.landing-root .btn:hover {
+  transform: translateY(-2px);
+}
+
+.landing-root .btn:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.landing-root .btn-accent {
+  box-shadow: 0 0 0 1px transparent, 0 8px 28px var(--color-accent-glow);
+}
+
+.landing-root .btn-accent:hover {
+  filter: none;
+  box-shadow: 0 12px 36px var(--color-accent-glow);
+}
+
+/* ── hero ── */
+
+.landing-hero {
+  min-height: 100dvh;
+  padding: 8px 0 72px;
+  align-items: end;
+  gap: 56px;
+  position: relative;
+  grid-template-columns: 1.2fr 0.9fr;
+}
+
+.landing-root > header.topbar {
+  background: linear-gradient(to bottom, var(--color-bg) 55%, transparent);
+}
+
+.hero-copy {
+  padding-bottom: 24px;
+}
+
+.kicker {
+  font-size: 11px;
+  letter-spacing: 0.32em;
+  color: var(--color-text-muted);
+  margin-bottom: 28px;
+}
+
+.hero-title {
+  font-family: var(--font-display);
+  font-size: clamp(3.25rem, 9.2vw, 8rem);
+  font-weight: 800;
+  letter-spacing: -0.06em;
+  line-height: 0.86;
+  max-width: 12ch;
+  text-wrap: balance;
+}
+
+.hero-title em {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: -0.04em;
+  color: var(--color-text-primary);
+}
+
+.hero-sub {
+  margin-top: 28px;
+  max-width: 36ch;
+  font-size: 15px;
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+}
+
+.hero-form {
+  margin-top: 36px;
+  max-width: 560px;
+}
+
+.landing-root .goal-input {
+  border-radius: var(--radius-full);
+  border-color: rgba(255, 255, 255, 0.1);
+  background: rgba(5, 5, 7, 0.7);
+  backdrop-filter: blur(12px);
+}
+
+.landing-root .goal-input:focus-within {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 4px var(--color-accent-glow);
+}
+
+.landing-root .goal-input input {
+  padding: 16px 4px;
+}
+
+.landing-root .goal-input .submit {
+  border-radius: var(--radius-full);
+  margin: 6px;
+  min-height: 40px;
+  padding: 0 18px;
+}
+
+.chips {
+  margin-top: 16px;
+  max-width: 560px;
+}
+
+.chip {
+  border-radius: var(--radius-full);
+  border-color: rgba(255, 255, 255, 0.08);
+  font-size: 11px;
+  letter-spacing: 0.01em;
+  padding: 8px 12px;
+  color: var(--color-text-muted);
+  transition:
+    color 0.3s var(--ease-snap),
+    border-color 0.3s var(--ease-snap),
+    transform 0.3s var(--ease-snap);
+}
+
+.chip:hover {
+  transform: translateY(-1px);
+  color: var(--color-text-primary);
+}
+
+/* ── 3D receipt stage ── */
+
+.hero-stage {
+  position: relative;
+  perspective: 1600px;
+  padding: 24px 8px 8px;
+}
+
+.hero-stage .live-caption {
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+  color: var(--color-text-secondary);
+}
+
+.hero-stage .receipt {
+  transform: rotateY(-18deg) rotateX(8deg) rotateZ(0.6deg);
+  transform-origin: 50% 60%;
+  box-shadow:
+    28px 40px 80px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgba(255, 255, 255, 0.04),
+    0 0 80px var(--color-accent-glow);
+  animation: receipt-float 8s var(--ease-out) infinite;
+  will-change: transform;
+}
+
+.hero-stage::before {
+  content: "";
+  position: absolute;
+  inset: 8% 6% 4% 10%;
+  background: radial-gradient(ellipse at center, var(--color-accent-glow), transparent 70%);
+  filter: blur(18px);
+  pointer-events: none;
+  z-index: -1;
+}
+
+@keyframes receipt-float {
+  0%,
+  100% {
+    transform: rotateY(-18deg) rotateX(8deg) translateY(0);
+  }
+  50% {
+    transform: rotateY(-14deg) rotateX(6deg) translateY(-10px);
+  }
+}
+
+.orbit-badge {
+  position: absolute;
+  right: -12px;
+  top: 10%;
+  width: 108px;
+  height: 108px;
+  z-index: 3;
+  pointer-events: none;
+  color: var(--color-text-muted);
+  animation: spin 22s linear infinite;
+}
+
+.orbit-badge svg {
+  width: 100%;
+  height: 100%;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ── receipt thermal ── */
+
+.receipt {
+  border-radius: 4px 4px 10px 10px;
+  border-color: rgba(255, 255, 255, 0.08);
+  background:
+    repeating-linear-gradient(
+      90deg,
+      transparent 0 11px,
+      rgba(255, 255, 255, 0.012) 11px 12px
+    ),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent 28px),
+    var(--color-bg-inset);
+  position: relative;
+}
+
+.receipt::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -6px;
+  height: 12px;
+  background: radial-gradient(circle, var(--color-bg) 5px, transparent 5.5px) 0 0 / 12px 12px;
+  pointer-events: none;
+}
+
+.receipt-head {
+  font-family: var(--font-mono);
+  letter-spacing: 0.22em;
+}
+
+.receipt-kicker {
+  letter-spacing: 0.22em;
+}
+
+.receipt-pending {
+  background: rgba(250, 204, 21, 0.04);
+}
+
+.landing-root .btn-accent.submit,
+.landing-root .pending-actions .btn-accent {
+  border-radius: var(--radius-full);
+}
+
+/* ── sections ── */
+
+.section {
+  padding: clamp(72px, 12vw, 128px) 0;
+  border-top: 1px solid var(--color-border);
+}
+
+.section-label {
+  font-family: var(--font-mono);
+  letter-spacing: 0.28em;
+}
+
+.section h2 {
+  font-size: clamp(1.75rem, 4vw, 3rem);
+  letter-spacing: -0.045em;
+  max-width: 18ch;
+  line-height: 1.08;
+}
+
+.section-lead {
+  max-width: 52ch;
+}
+
+.log,
+.loop,
+.two-col,
+.integ-list,
+.stats,
+.goal-row,
+.memory-card,
+.integ-row,
+.artifact,
+.empty {
+  background: rgba(12, 13, 17, 0.72);
+  backdrop-filter: blur(10px);
+  border-color: var(--color-border);
+}
+
+.loop,
+.two-col,
+.integ-list,
+.stats {
+  background: var(--color-border);
+}
+
+.loop article,
+.two-col article,
+.integ-list li,
+.stats article {
+  background: var(--color-bg-raised);
+  transition: background 0.4s var(--ease-snap), transform 0.4s var(--ease-snap);
+}
+
+.loop .n {
+  font-family: var(--font-display);
+  letter-spacing: 0.22em;
+}
+
+.loop article:hover,
+.two-col article:hover,
+.integ-list li:hover {
+  background: #12131a;
+}
+
+.goal-row:hover,
+.memory-card:hover,
+.integ-row:hover {
+  transform: translateY(-2px);
+  border-color: var(--color-border-strong);
+}
+
+.diff dd {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: clamp(1.4rem, 2.4vw, 2rem);
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+}
+
+.diff .old {
+  font-style: italic;
+  opacity: 0.7;
+}
+
+.landing-root .desk-top {
+  background: rgba(7, 8, 11, 0.72);
+  backdrop-filter: blur(18px) saturate(140%);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.landing-root .desk-goal .goal-input {
+  border-radius: var(--radius-full);
+}
+
+.landing-root .page-head h1 {
+  font-size: clamp(1.6rem, 3vw, 2.2rem);
+}
+
+.site-footer {
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.landing-root .toast {
+  border-radius: var(--radius-full);
+  backdrop-filter: blur(12px);
+  background: rgba(12, 13, 17, 0.9);
+}
+
+.landing-root .mobile-nav {
+  backdrop-filter: blur(16px);
+  background: rgba(7, 8, 11, 0.86);
+}
+
+/* ── motion ── */
+
+.enter-up {
+  animation: enter-up 0.75s var(--ease-out) both;
+  animation-delay: var(--stagger, 0ms);
+}
+
+@keyframes enter-up {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+    filter: blur(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+[data-reveal] {
+  opacity: 0;
+  transform: translateY(28px);
+  transition:
+    opacity 0.8s var(--ease-out),
+    transform 0.8s var(--ease-out);
+}
+
+[data-reveal].is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+@media (max-width: 960px) {
+  .landing-hero {
+    min-height: auto;
+    padding-top: 24px;
+    align-items: start;
+  }
+
+  .hero-title {
+    max-width: none;
+    font-size: clamp(2.6rem, 14vw, 4.5rem);
+  }
+
+  .hero-stage .receipt {
+    transform: none;
+    animation: none;
+  }
+
+  .orbit-badge {
+    display: none;
+  }
+
+  .landing-root::before {
+    background-size: 70vw;
+    background-position: 120% -10%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .enter-up,
+  .hero-stage .receipt,
+  .orbit-badge,
+  .pulse-dot {
+    animation: none !important;
+  }
+
+  [data-reveal] {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  .hero-stage .receipt {
+    transform: none;
+  }
+}
+
+/* Isolation: never restyle Gate 19 app components */
+.od-app-shell,
+.od-mission-card,
+.od-mission-grid,
+.od-command-bar,
+.od-command,
+.od-rail,
+.od-drawer,
+.od-drawer-overlay,
+.od-approval-bar,
+.od-approvals,
+.od-run,
+.od-plan,
+.od-artifacts,
+.od-memory,
+.od-settings,
+.od-tg {
+  animation: none;
+}

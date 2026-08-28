@@ -1,0 +1,268 @@
+/* Marketing only. Gate 4 tokens. No gold.css. */
+
+.mkt {
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  overflow-x: hidden;
+}
+
+.mkt :focus-visible {
+  outline: 1px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.mkt-nav {
+  max-width: 1080px;
+  margin: 0 auto;
+  height: 56px;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border-bottom: 1px solid var(--line);
+}
+
+.mkt-nav nav {
+  display: flex;
+  gap: 16px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.mkt-nav nav a:hover {
+  color: var(--text);
+}
+
+.mkt-wordmark {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.mkt-wordmark span {
+  font-family: var(--font-serif);
+  font-weight: 400;
+}
+
+.mkt-hero {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 48px 24px 64px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
+  align-items: start;
+  animation: mkt-fade 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@keyframes mkt-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.mkt-hero h1 {
+  font-family: var(--font-serif);
+  font-size: 40px;
+  font-weight: 400;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  max-width: 12ch;
+  margin: 16px 0 16px;
+}
+
+.mkt-sub {
+  font-family: var(--font-sans);
+  font-size: 16px;
+  color: var(--text-muted);
+  max-width: 36ch;
+  line-height: 1.45;
+  margin-bottom: 24px;
+}
+
+.mkt-ctas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.mkt-btn {
+  display: inline-flex;
+  align-items: center;
+  height: 36px;
+  padding: 0 14px;
+  border-radius: var(--r-md);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.mkt-btn-primary {
+  background: var(--accent);
+  color: var(--bg);
+  border: 1px solid var(--accent);
+}
+
+.mkt-btn-ghost {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--line-strong);
+}
+
+.mkt-hero-visuals {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.mkt-board-crop {
+  display: grid;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.mkt-board-crop .od-mission-card {
+  min-height: 0;
+}
+
+.mkt-section {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 64px 24px;
+  border-top: 1px solid var(--line);
+}
+
+.mkt-section h2 {
+  font-family: var(--font-serif);
+  font-size: 28px;
+  font-weight: 400;
+  line-height: 1.25;
+  max-width: 22ch;
+  margin-bottom: 24px;
+}
+
+.mkt-acme {
+  font-family: var(--font-serif);
+  font-size: 16px;
+  margin-bottom: 16px;
+  max-width: 48ch;
+}
+
+.mkt-hidden {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 14px;
+  color: var(--text-muted);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mkt-loop {
+  font-family: var(--font-sans);
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.mkt-caption {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+}
+
+.mkt-stats {
+  margin-top: 16px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.mkt-surfaces {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+.mkt-surfaces h2 {
+  font-size: 20px;
+  margin-bottom: 8px;
+}
+
+.mkt-surfaces p {
+  font-size: 16px;
+  color: var(--text-muted);
+}
+
+.mkt-safety {
+  font-family: var(--font-serif);
+  font-size: 28px;
+  font-weight: 400;
+  max-width: 24ch;
+}
+
+.mkt-footer {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 32px 24px 64px;
+  border-top: 1px solid var(--line);
+  font-size: 13px;
+  color: var(--text-muted);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mkt-footer a {
+  color: var(--text-muted);
+}
+
+.mkt-footer a:hover {
+  color: var(--text);
+}
+
+@media (max-width: 768px) {
+  .mkt-hero,
+  .mkt-surfaces {
+    grid-template-columns: 1fr;
+  }
+
+  .mkt-nav {
+    padding: 0 16px;
+  }
+
+  .mkt-nav nav a:nth-child(-n + 3) {
+    display: none;
+  }
+
+  .mkt-hero,
+  .mkt-section,
+  .mkt-footer {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .mkt-hero h1 {
+    font-size: 28px;
+    max-width: none;
+    overflow-wrap: anywhere;
+  }
+
+  .mkt-loop {
+    font-size: 16px;
+    overflow-wrap: anywhere;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mkt-hero {
+    animation: none;
+  }
+}

@@ -1,0 +1,105 @@
+/* /sign-in. Gate 4 tokens. No gold.css. */
+
+.od-signin {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+}
+
+.od-signin-card {
+  width: min(420px, 100%);
+}
+
+.od-signin-mark {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 24px;
+}
+
+.od-signin-mark span {
+  font-family: var(--font-serif);
+  font-weight: 400;
+}
+
+.od-signin h1 {
+  font-family: var(--font-serif);
+  font-size: 28px;
+  font-weight: 400;
+  line-height: 1.25;
+  margin-bottom: 8px;
+}
+
+.od-signin-sub {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin-bottom: 32px;
+}
+
+.od-signin-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.od-signin-full {
+  width: 100%;
+  height: 36px;
+}
+
+.od-signin-text {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.od-signin-text:hover {
+  color: var(--text);
+}
+
+.od-signin-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.od-signin-field input {
+  height: 36px;
+  padding: 0 10px;
+  background: var(--bg-elev-1);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  font-family: var(--font-sans);
+  font-size: 14px;
+}
+
+.od-signin-error {
+  font-size: 13px;
+  color: var(--danger);
+}
+
+.od-signin-legal {
+  margin-top: 32px;
+  font-family: var(--font-serif);
+  font-size: 13px;
+  font-style: italic;
+  color: var(--text-muted);
+}
+
+.od-signin :focus-visible {
+  outline: 1px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.od-tg-widget {
+  min-height: 28px;
+}

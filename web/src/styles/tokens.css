@@ -1,0 +1,51 @@
+:root {
+  --bg: #0b0c0a;
+  --bg-elev-1: #11130f;
+  --bg-elev-2: #161814;
+  --bg-elev-3: #1c1f19;
+  --line: #2a2c28;
+  --line-strong: #3a3d36;
+  --text: #e8e4d9;
+  --text-muted: #8b877a;
+  --text-faint: #5e5b52;
+  --accent: #7c8f6c;
+  --accent-dim: #2a3326;
+  --warn: #c4a15a;
+  --warn-dim: #3a3018;
+  --danger: #b45a4a;
+  --good: #7c8f6c;
+
+  --pending: var(--warn);
+  --running: #a3b18a;
+  --done: var(--accent);
+  --idle: var(--text-faint);
+  --blocked: var(--danger);
+
+  --font-sans: "Geist", "IBM Plex Sans", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Newsreader", "IBM Plex Serif", "Iowan Old Style", Georgia, serif;
+  --font-mono: "Geist Mono", "IBM Plex Mono", ui-monospace, monospace;
+
+  --r-sm: 4px;
+  --r-md: 6px;
+  --r-lg: 8px;
+
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  /* leftover aliases — same Gate 4 values, no cyan, no glow */
+  --color-bg: var(--bg);
+  --color-bg-raised: var(--bg-elev-1);
+  --color-bg-inset: var(--bg-elev-2);
+  --color-border: var(--line);
+  --color-border-strong: var(--line-strong);
+  --color-accent: var(--accent);
+  --color-accent-dim: var(--accent-dim);
+  --color-accent-glow: transparent;
+  --color-on-accent: var(--bg);
+  --color-text-primary: var(--text);
+  --color-text-secondary: var(--text-muted);
+  --color-text-muted: var(--text-faint);
+  --color-success: var(--good);
+  --color-pending: var(--warn);
+  --color-error: var(--danger);
+  --radius: var(--r-lg);
+}

@@ -1,0 +1,132 @@
+.od-mission-card {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+  min-height: 148px;
+  padding: 16px;
+  text-align: left;
+  background: var(--bg-elev-1);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  box-shadow: none;
+  cursor: pointer;
+  font-family: var(--font-sans);
+}
+
+.od-mission-card.is-pending {
+  border-left: 2px solid var(--warn);
+}
+
+.od-mission-card.is-selected {
+  border-color: var(--line-strong);
+}
+
+.od-mission-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.od-mission-intent {
+  font-family: var(--font-serif);
+  font-size: 17px;
+  font-weight: 400;
+  line-height: 1.25;
+  color: var(--text);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  max-width: 28ch;
+}
+
+.od-status-pill {
+  flex-shrink: 0;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  padding: 2px 8px;
+  line-height: 1.4;
+}
+
+.od-status-pill.is-running {
+  color: var(--running);
+  border-color: var(--accent-dim);
+}
+
+.od-status-pill.is-waiting_on_you {
+  color: var(--warn);
+  border-color: var(--warn-dim);
+}
+
+.od-status-pill.is-done {
+  color: var(--done);
+}
+
+.od-status-pill.is-draft {
+  color: var(--text-muted);
+}
+
+.od-status-pill.is-idle {
+  color: var(--idle);
+}
+
+.od-status-pill.is-failed {
+  color: var(--danger);
+}
+
+.od-mission-meter {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.od-mission-progress {
+  display: block;
+  height: 2px;
+  background: var(--line);
+  width: 100%;
+}
+
+.od-mission-progress > span {
+  display: block;
+  height: 2px;
+  background: var(--accent);
+}
+
+.od-mission-card.is-pending .od-mission-progress > span {
+  background: var(--warn);
+}
+
+.od-mission-tools {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.od-mission-meta {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-faint);
+}
+
+.od-mission-need {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--warn);
+}
+
+.od-mission-card:focus-visible {
+  outline: 1px solid var(--accent);
+  outline-offset: 2px;
+}
