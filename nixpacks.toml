@@ -1,0 +1,13 @@
+providers = ["python", "node"]
+
+[phases.install]
+cmds = [
+  "python -m pip install -r server/requirements.txt",
+  "npm ci --prefix web",
+]
+
+[phases.build]
+cmds = ["npm run build --prefix web"]
+
+[start]
+cmd = "python -m uvicorn app.main:app --host 0.0.0.0 --port $PORT --app-dir server"

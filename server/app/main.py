@@ -9,12 +9,24 @@ from uuid import uuid4
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, RedirectResponse, StreamingResponse
+from fastapi.responses import FileResponse, JSONResponse, RedirectResponse, StreamingResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 ROOT = Path(__file__).resolve().parents[2]
+WEB_DIST = ROOT / "web" / "dist"
 load_dotenv(ROOT / ".env")
 load_dotenv(Path(__file__).resolve().parents[1] / ".env")
+
+
+def _production() -> bool:
+    if os.getenv("RAILWAY_ENVIRONMENT") or os.getenv("RAILWAY_ENVIRONMENT_NAME"):
+        return True
+    return (os.getenv("APP_ORIGIN") or "").startswith("https://")
+
+
+if _production() and not (os.getenv("SESSION_SECRET") or "").strip():
+    raise RuntimeError("SESSION_SECRET is required in production.")
 
 from .agent import apply_resolution, run_goal
 from .auth_email import EMAIL
@@ -39,9 +51,12 @@ from .users import USERS
 
 app = FastAPI(title="Orion Desk", version="0.1.0")
 _ORIGIN = os.getenv("APP_ORIGIN") or "http://127.0.0.1:5173"
+_cors = [_ORIGIN]
+if not _production():
+    _cors.extend(["http://127.0.0.1:5173", "http://localhost:5173"])
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[_ORIGIN, "http://127.0.0.1:5173", "http://localhost:5173"],
+    allow_origins=list(dict.fromkeys(_cors)),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -457,3 +472,29 @@ def integrations():
 @app.on_event("startup")
 async def _startup():
     await start_telegram()
+
+
+def _mount_web() -> None:
+    if not WEB_DIST.is_dir():
+        return
+    assets = WEB_DIST / "assets"
+    if assets.is_dir():
+        app.mount("/assets", StaticFiles(directory=str(assets)), name="assets")
+
+    @app.get("/{full_path:path}")
+    def spa(full_path: str):
+        if full_path:
+            candidate = (WEB_DIST / full_path).resolve()
+            try:
+                candidate.relative_to(WEB_DIST.resolve())
+            except ValueError:
+                raise HTTPException(404, "Not found.")
+            if candidate.is_file():
+                return FileResponse(candidate)
+        index = WEB_DIST / "index.html"
+        if index.is_file():
+            return FileResponse(index)
+        raise HTTPException(404, "Not found.")
+
+
+_mount_web()
