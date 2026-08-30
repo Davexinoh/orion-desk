@@ -21,6 +21,17 @@ _STATUS = {
     "idle": "Idle",
 }
 
+_NOT_INTENT = frozenset(
+    {
+        "approve",
+        "decline",
+        "do it",
+        "keep as draft",
+        "open desk",
+        "open receipt",
+    }
+)
+
 
 def _origin() -> str:
     return (os.getenv("APP_ORIGIN") or "").rstrip("/")
@@ -97,11 +108,37 @@ def tick_lines(mission: dict, limit: int = 8) -> str:
     return "\n".join(lines)
 
 
+def artifact_body(mission: dict, limit: int = 3500) -> str:
+    arts = mission.get("artifacts") or []
+    texts: list[str] = []
+    if isinstance(arts, list):
+        for a in arts:
+            if not isinstance(a, dict):
+                continue
+            if a.get("kind") == "calendar":
+                continue
+            body = (a.get("body") or "").strip()
+            if body:
+                texts.append(body)
+    elif isinstance(arts, dict):
+        for k, v in arts.items():
+            if k in ("calendar", "attendees"):
+                continue
+            if isinstance(v, str) and v.strip():
+                texts.append(v.strip())
+    if not texts:
+        return ""
+    return "\n\n".join(texts)[:limit]
+
+
 def mission_reply(mission: dict) -> str:
     parts = [mission_card(mission)]
     ticks = tick_lines(mission)
     if ticks:
         parts.append(ticks)
+    work = artifact_body(mission)
+    if work:
+        parts.append(work)
     return "\n\n".join(parts)[:4000]
 
 
@@ -116,6 +153,9 @@ def compact_receipt(mission: dict) -> str:
         elapsed = mission.get("elapsed_seconds")
     if elapsed:
         parts.append(f"Elapsed {elapsed}s")
+    work = artifact_body(mission)
+    if work:
+        parts.append(work)
     return "\n\n".join(parts)[:4000]
 
 
@@ -238,6 +278,9 @@ async def start_telegram() -> None:
         if not intent:
             await _reply(update, "What should get done?")
             return
+        if intent.lower() in _NOT_INTENT:
+            await _reply(update, "Use the buttons, or /approvals.")
+            return
         user = _linked_user(update)
         if not user:
             _tg_log("intent")
@@ -271,7 +314,7 @@ async def start_telegram() -> None:
             "Orion Desk.\n\n"
             "Say the outcome. I will gather context, do the safe work, "
             "and ask before anything goes out.\n\n"
-            "Try: I have a client meeting with Acme tomorrow at 2 PM. Handle it.\n\n"
+            "Try: Cooking recipe for two ready by 3pm.\n\n"
             "Or tap Menu and pick New.",
         )
 
@@ -347,6 +390,9 @@ async def start_telegram() -> None:
             intent = (update.message.text or "").strip()
         if not intent:
             await _reply(update, "What should get done?")
+            return
+        if intent.lower() in _NOT_INTENT:
+            await _reply(update, "Use the buttons, or /approvals.")
             return
         if context.user_data.pop("await_new", None):
             await _run_intent(update, intent)
