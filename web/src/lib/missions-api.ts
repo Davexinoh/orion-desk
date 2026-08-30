@@ -122,12 +122,12 @@ export function toApprovals(raw: ServerMission): PendingApproval[] {
 export function toArtifacts(raw: ServerMission): MissionArtifacts | undefined {
   const list = raw.artifacts || [];
   if (!list.length) return undefined;
-  const out: MissionArtifacts = { brief: "", agenda: "", calendar: "", followUp: "", attendees: [] };
+  const out: MissionArtifacts = { attendees: [] };
   for (const a of list) {
-    if (a.kind === "brief" || a.kind === "doc" || a.kind === "list") out.brief = a.body;
-    else if (a.kind === "agenda") out.agenda = a.body;
-    else if (a.kind === "calendar") out.calendar = a.body;
-    else if (a.kind === "followUp" || a.kind === "email") out.followUp = a.body;
+    if (!a.kind || a.kind === "attendees") continue;
+    if (typeof a.body === "string" && a.body) {
+      (out as Record<string, unknown>)[a.kind] = a.body;
+    }
   }
   return out;
 }
