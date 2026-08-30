@@ -38,15 +38,17 @@ export type PendingApproval = {
   age: string;
   risk: string;
 };
-
 export type MissionArtifacts = {
-  brief: string;
-  agenda: string;
-  calendar: string;
-  followUp: string;
-  attendees: string[];
+  brief?: string;
+  agenda?: string;
+  calendar?: string;
+  followUp?: string;
+  recipe?: string;
+  list?: string;
+  doc?: string;
+  email?: string;
+  attendees?: string[];
 };
-
 export type MemoryFact = {
   id: string;
   text: string;
