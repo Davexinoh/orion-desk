@@ -61,7 +61,21 @@ def _generic_plan(intent: str) -> list[dict]:
     steps: list[dict] = [{"label": "Understand outcome", "tool": None}]
     mail = any(w in t for w in ("inbox", "mail", "email", "thread", "waiting on me"))
     files = any(w in t for w in ("notes", "doc", "drive", "file", "pdf"))
-    web = any(w in t for w in ("research", "web", "search", "company", "news", "recipe"))
+    web = any(
+        w in t
+        for w in (
+            "research",
+            "web",
+            "search",
+            "company",
+            "news",
+            "recipe",
+            "cook",
+            "dinner",
+            "menu",
+            "how to",
+        )
+    )
     if looks_like_calendar(intent):
         steps.append({"label": "Calendar inspected", "tool": "calendar.read"})
     if mail:
