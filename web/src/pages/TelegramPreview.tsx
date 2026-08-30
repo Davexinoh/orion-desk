@@ -12,7 +12,10 @@ const TICKS = [
   "Drafted agenda. Not sent.",
 ];
 
-const AGENDA_PREVIEW = artifacts[ACME_ID].agenda.split("\n").slice(0, 8).join("\n");
+const AGENDA_PREVIEW = (artifacts[ACME_ID]?.agenda || "")
+  .split("\n")
+  .slice(0, 8)
+  .join("\n");
 
 export default function TelegramPreview() {
   const receipt = receipts[ACME_ID];
