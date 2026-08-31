@@ -50,11 +50,11 @@ def calendar_read_live(intent: str, user_id: str) -> dict[str, Any]:
 
 
 def gmail_search_live(intent: str, user_id: str) -> dict[str, Any]:
-    q = _search_query(intent)
+    q = _gmail_query(intent)
     res = google_get(
         user_id,
         "https://gmail.googleapis.com/gmail/v1/users/me/messages",
-        {"q": q, "maxResults": "10"},
+        {"q": q, "maxResults": "8"},
     )
     if res is None or res.status_code >= 400:
         return {
@@ -64,19 +64,28 @@ def gmail_search_live(intent: str, user_id: str) -> dict[str, Any]:
         }
     messages = (res.json() or {}).get("messages") or []
     n = len(messages)
-    context = ""
-    if messages:
-        mid = messages[0].get("id")
-        if mid:
-            one = google_get(
-                user_id,
-                f"https://gmail.googleapis.com/gmail/v1/users/me/messages/{mid}",
-                {"format": "metadata", "metadataHeaders": "Subject"},
-            )
-            if one is not None and one.status_code < 400:
-                snippet = str((one.json() or {}).get("snippet") or "")
-                context = snippet[:200]
+    lines: list[str] = []
+    for item in messages[:5]:
+        mid = item.get("id")
+        if not mid:
+            continue
+        one = google_get(
+            user_id,
+            f"https://gmail.googleapis.com/gmail/v1/users/me/messages/{mid}",
+            {"format": "metadata", "metadataHeaders": ["From", "Subject", "Date"]},
+        )
+        if one is None or one.status_code >= 400:
+            continue
+        headers = {
+            str(h.get("name") or "").lower(): str(h.get("value") or "")
+            for h in ((one.json() or {}).get("payload") or {}).get("headers") or []
+            if isinstance(h, dict)
+        }
+        who = headers.get("from") or "unknown"
+        subj = headers.get("subject") or "(no subject)"
+        lines.append(f"{who} — {subj}")
     evidence = f"Read {n} email" if n == 1 else f"Read {n} emails"
+    context = "\n".join(lines) if lines else "No thread titles returned."
     return {
         "ok": True,
         "evidence": evidence,
@@ -238,6 +247,13 @@ def _raw_message(to_list: list[str], subject: str, body: str) -> str:
     msg["Subject"] = subject
     msg.set_content(body or "")
     return base64.urlsafe_b64encode(msg.as_bytes()).decode().rstrip("=")
+
+
+def _gmail_query(intent: str) -> str:
+    t = (intent or "").lower()
+    if any(w in t for w in ("inbox", "waiting on me", "unread", "this week")):
+        return "in:inbox newer_than:7d"
+    return _search_query(intent) or "in:inbox"
 
 
 def _search_query(intent: str) -> str:
