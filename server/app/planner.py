@@ -28,6 +28,10 @@ _CAL_RE = re.compile(
     r"\b\d{1,2}\s*(am|pm)\b|\bat\s+\d{1,2}\b",
     re.IGNORECASE,
 )
+_INBOX_RE = re.compile(
+    r"\b(inbox|waiting on me|unread|what.*(mail|email))\b",
+    re.IGNORECASE,
+)
 
 
 def looks_like_meeting(intent: str) -> bool:
@@ -40,6 +44,10 @@ def looks_like_send(intent: str) -> bool:
 
 def looks_like_calendar(intent: str) -> bool:
     return bool(_CAL_RE.search(intent or ""))
+
+
+def looks_like_inbox(intent: str) -> bool:
+    return bool(_INBOX_RE.search(intent or ""))
 
 
 def looks_like_acme(intent: str) -> bool:
@@ -59,7 +67,7 @@ def _meeting_plan(intent: str) -> list[dict]:
 def _generic_plan(intent: str) -> list[dict]:
     t = (intent or "").lower()
     steps: list[dict] = [{"label": "Understand outcome", "tool": None}]
-    mail = any(w in t for w in ("inbox", "mail", "email", "thread", "waiting on me"))
+    mail = looks_like_inbox(intent) or any(w in t for w in ("mail", "email", "thread"))
     files = any(w in t for w in ("notes", "doc", "drive", "file", "pdf"))
     web = any(
         w in t
@@ -76,7 +84,7 @@ def _generic_plan(intent: str) -> list[dict]:
             "how to",
         )
     )
-    if looks_like_calendar(intent):
+    if looks_like_calendar(intent) and not looks_like_inbox(intent):
         steps.append({"label": "Calendar inspected", "tool": "calendar.read"})
     if mail:
         steps.append({"label": "Gather mail context", "tool": "gmail.search"})
@@ -84,8 +92,11 @@ def _generic_plan(intent: str) -> list[dict]:
         steps.append({"label": "Gather files", "tool": "drive.read"})
     if web or not (mail or files or looks_like_calendar(intent)):
         steps.append({"label": "Gather context", "tool": "web.search"})
-    steps.append({"label": "Draft the artifact", "tool": "doc.draft"})
-    if looks_like_send(intent):
+    if looks_like_inbox(intent):
+        steps.append({"label": "List what is waiting", "tool": "doc.draft"})
+    else:
+        steps.append({"label": "Draft the artifact", "tool": "doc.draft"})
+    if looks_like_send(intent) and not looks_like_inbox(intent):
         steps.append({"label": "Ask before send", "tool": "gmail.send"})
     if len(steps) > 6:
         tail = [s for s in steps if s.get("tool") in GATED]
@@ -98,8 +109,9 @@ def plan(intent: str) -> list[dict]:
     raw = _meeting_plan(intent) if looks_like_meeting(intent) else _generic_plan(intent)
     cap = 8 if looks_like_meeting(intent) else 6
     steps = [{"label": s["label"], "tool": s["tool"]} for s in raw][:cap]
-    if looks_like_send(intent) and steps and steps[-1].get("tool") not in GATED:
-        steps = steps[: cap - 1] + [{"label": "Ask before send", "tool": "gmail.send"}]
+    if looks_like_send(intent) and not looks_like_inbox(intent):
+        if steps and steps[-1].get("tool") not in GATED:
+            steps = steps[: cap - 1] + [{"label": "Ask before send", "tool": "gmail.send"}]
     if not _valid(steps):
         return [{"label": "Could not plan this", "tool": None, "failed": True}]
     return steps
