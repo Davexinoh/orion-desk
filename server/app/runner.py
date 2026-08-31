@@ -89,6 +89,9 @@ def run_mission(user_id: str, intent: str) -> dict:
             emit(mid, {"type": "step.done", "stepIndex": i, "evidence": evidence or ""})
             if evidence:
                 prior.append(f"{label}: {evidence}")
+            extra = result.get("_context")
+            if extra:
+                prior.append(str(extra))
             art = result.get("artifact")
             if art:
                 MISSIONS.upsert_artifact(
