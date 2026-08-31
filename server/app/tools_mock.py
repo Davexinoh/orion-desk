@@ -270,9 +270,15 @@ def _draft_body(intent: str, label: str) -> tuple[str, str, str]:
             "Recipe",
             f"Recipe for two\n\n{intent}\n\nIngredients and steps go here.\n",
         )
-    if "list" in low or "task" in want:
-        return ("list", "Task list", f"Task list for:\n{intent}\n")
-    if "email" in low or "inbox" in want or "mail" in want:
+    if (
+        "waiting on me" in want
+        or "inbox" in want
+        or "list" in low
+        or "task" in want
+        or "what is waiting" in low
+    ):
+        return ("list", "Waiting list", f"Waiting on you\n\n{intent}\n")
+    if "email" in low or "mail" in want:
         return ("email", "Email", f"Draft email for:\n{intent}\n\nNot sent.")
     if "brief" in low:
         return ("brief", "Brief", f"Brief for:\n{intent}")
