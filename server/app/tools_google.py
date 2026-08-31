@@ -138,7 +138,23 @@ def gmail_send_do(user_id: str, approval_id: str | None, mission: dict) -> dict[
             "mode": "mock",
         }
     kind, body = _mail_artifact(mission)
+    if not body or body.strip() == (mission.get("intent") or "").strip():
+        return {
+            "ok": False,
+            "evidence": "Nothing to send. Draft is empty or is the prompt.",
+            "gated": True,
+            "mode": "live",
+        }
+    if "no emails to summarize" in body.lower():
+        return {
+            "ok": False,
+            "evidence": "Refusing to send an empty summary.",
+            "gated": True,
+            "mode": "live",
+        }
     to_list = _emails(body)
+    if not to_list:
+        to_list = _emails(mission.get("intent") or "")
     if not to_list:
         me = _gmail_address(user_id)
         if me:
@@ -164,7 +180,7 @@ def gmail_send_do(user_id: str, approval_id: str | None, mission: dict) -> dict[
     n = len(to_list)
     return {
         "ok": True,
-        "evidence": f"Agenda sent to {n} attendees",
+        "evidence": f"Sent to {n} recipient" if n == 1 else f"Sent to {n} recipients",
         "gated": True,
         "mode": "live",
     }
@@ -211,11 +227,11 @@ def calendar_write_do(user_id: str, approval_id: str | None, mission: dict) -> d
 
 def _mail_artifact(mission: dict) -> tuple[str, str]:
     arts = {a.get("kind"): a.get("body") or "" for a in mission.get("artifacts") or []}
-    if arts.get("agenda"):
-        return "agenda", str(arts["agenda"])
-    if arts.get("followUp"):
-        return "followUp", str(arts["followUp"])
-    return "agenda", mission.get("intent") or ""
+    for kind in ("email", "followUp", "agenda", "list", "doc", "brief"):
+        body = str(arts.get(kind) or "").strip()
+        if body:
+            return kind, body
+    return "", ""
 
 
 def _emails(body: str) -> list[str]:
@@ -237,8 +253,10 @@ def _gmail_address(user_id: str) -> str | None:
 def _subject(body: str, kind: str) -> str:
     for line in (body or "").splitlines():
         if line.lower().startswith("subject:"):
-            return line.split(":", 1)[1].strip()[:120] or "Agenda"
-    return "Agenda" if kind == "agenda" else "Follow-up"
+            return line.split(":", 1)[1].strip()[:120] or "Desk"
+        if line.strip():
+            return line.strip()[:120]
+    return "Desk"
 
 
 def _raw_message(to_list: list[str], subject: str, body: str) -> str:
@@ -251,7 +269,21 @@ def _raw_message(to_list: list[str], subject: str, body: str) -> str:
 
 def _gmail_query(intent: str) -> str:
     t = (intent or "").lower()
-    if any(w in t for w in ("inbox", "waiting on me", "unread", "this week")):
+    if any(
+        w in t
+        for w in (
+            "inbox",
+            "waiting on me",
+            "unread",
+            "this week",
+            "this morning",
+            "today",
+            "emails i got",
+            "summarize",
+        )
+    ):
+        if any(w in t for w in ("this morning", "today")):
+            return "in:inbox newer_than:1d"
         return "in:inbox newer_than:7d"
     return _search_query(intent) or "in:inbox"
 
