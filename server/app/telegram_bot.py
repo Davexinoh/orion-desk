@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import asyncio
 import os
-import re
 
 from .approvals import ApprovalError, do_approval, keep_draft, list_needed
 from .mission_store import MISSIONS
@@ -30,18 +29,13 @@ _NOT_INTENT = frozenset(
         "keep as draft",
         "open desk",
         "open receipt",
+        "yes",
+        "y",
+        "ok",
+        "okay",
+        "no",
+        "n",
     }
-)
-
-_GO_RE = re.compile(
-    r"^(yes|y|ok|okay|go|do it|handle it|run it|proceed|do that)$",
-    re.IGNORECASE,
-)
-_NO_RE = re.compile(r"^(no|n|not now|cancel|stop)$", re.IGNORECASE)
-_WORK_RE = re.compile(
-    r"\b(inbox|email|mail|meeting|call|recipe|cook|draft|prepare|research|"
-    r"agenda|handle|waiting on me|notes|calendar)\b",
-    re.IGNORECASE,
 )
 
 
@@ -177,16 +171,7 @@ def _needed(mission: dict) -> dict | None:
 
 
 def _unlink_copy() -> str:
-    return (
-        f"Open {_signin_url()} and Continue with Telegram first.\n"
-        f"{_desk_url()}"
-    )
-
-
-def _looks_like_work(text: str) -> bool:
-    if len(text) > 80:
-        return True
-    return bool(_WORK_RE.search(text))
+    return "Open Sign in and Continue with Telegram first. Then say the outcome here."
 
 
 async def start_telegram() -> None:
@@ -215,7 +200,49 @@ async def start_telegram() -> None:
 
     def _clear_await(context: ContextTypes.DEFAULT_TYPE) -> None:
         context.user_data.pop("await_new", None)
-        context.user_data.pop("pending_intent", None)
+
+    def _url_btn(label: str, url: str) -> InlineKeyboardButton:
+        if url.startswith("http"):
+            return InlineKeyboardButton(label, url=url)
+        return InlineKeyboardButton(label, callback_data="desk")
+
+    def _home_keyboard() -> InlineKeyboardMarkup:
+        return InlineKeyboardMarkup(
+            [
+                [
+                    InlineKeyboardButton("New", callback_data="new"),
+                    _url_btn("Open desk", _desk_url()),
+                ]
+            ]
+        )
+
+    def _signin_keyboard() -> InlineKeyboardMarkup:
+        return InlineKeyboardMarkup(
+            [
+                [
+                    _url_btn("Sign in", _signin_url()),
+                    _url_btn("Open desk", _desk_url()),
+                ]
+            ]
+        )
+
+    def _mission_keyboard(mission: dict, approval_id: str | None) -> InlineKeyboardMarkup | None:
+        rows: list[list] = []
+        if approval_id:
+            rows.append(
+                [
+                    InlineKeyboardButton("Do it", callback_data=f"do:{approval_id}"),
+                    InlineKeyboardButton("Keep as draft", callback_data=f"draft:{approval_id}"),
+                ]
+            )
+        origin = _origin()
+        mid = mission.get("id")
+        links = []
+        if origin.startswith("http") and mid:
+            links.append(InlineKeyboardButton("Open receipt", url=f"{origin}/desk/m/{mid}"))
+        links.append(_url_btn("Open desk", _desk_url()))
+        rows.append(links)
+        return InlineKeyboardMarkup(rows)
 
     def _action_keyboard(approval_id: str, *, open_desk: bool) -> InlineKeyboardMarkup | None:
         if not approval_id:
@@ -226,22 +253,8 @@ async def start_telegram() -> None:
         ]
         rows = [row]
         if open_desk:
-            origin = _origin()
-            if origin.startswith("http"):
-                rows.append([InlineKeyboardButton("Open desk", url=_desk_url())])
-            else:
-                rows.append([InlineKeyboardButton("Open desk", callback_data="desk")])
+            rows.append([_url_btn("Open desk", _desk_url())])
         return InlineKeyboardMarkup(rows)
-
-    def _offer_keyboard() -> InlineKeyboardMarkup:
-        return InlineKeyboardMarkup(
-            [
-                [
-                    InlineKeyboardButton("Run it", callback_data="run:pending"),
-                    InlineKeyboardButton("Not now", callback_data="run:cancel"),
-                ]
-            ]
-        )
 
     def _msg(update: Update):
         return update.effective_message
@@ -304,7 +317,7 @@ async def start_telegram() -> None:
         user = _linked_user(update)
         if not user:
             _tg_log("intent")
-            await _reply(update, _unlink_copy())
+            await _reply(update, _unlink_copy(), _signin_keyboard())
             return
         try:
             mission = await asyncio.to_thread(run_mission, user["id"], intent)
@@ -318,41 +331,12 @@ async def start_telegram() -> None:
             return
         mid = str(mission.get("id") or "")
         _tg_log("intent", mid)
-        waiting = mission.get("status") == "waiting_on_you"
-        if waiting:
-            ap = _needed(mission)
-            kb = _action_keyboard(ap["id"], open_desk=True) if ap else None
+        ap = _needed(mission) if mission.get("status") == "waiting_on_you" else None
+        kb = _mission_keyboard(mission, ap["id"] if ap else None)
+        if mission.get("status") == "waiting_on_you":
             await _reply(update, mission_reply(mission), kb)
             return
-        await _reply(update, compact_receipt(mission))
-
-    async def _talk(update: Update, context: ContextTypes.DEFAULT_TYPE, text: str) -> None:
-        pending = (context.user_data.get("pending_intent") or "").strip()
-        if _GO_RE.match(text):
-            if pending:
-                context.user_data.pop("pending_intent", None)
-                await _run_intent(update, pending)
-                return
-            await _reply(update, "Nothing queued. Use /new or tell me the outcome first.")
-            return
-        if _NO_RE.match(text):
-            context.user_data.pop("pending_intent", None)
-            await _reply(update, "Dropped. Say the next outcome, or /new.")
-            return
-        if _looks_like_work(text):
-            context.user_data["pending_intent"] = text
-            await _reply(
-                update,
-                f"I can run that as a mission:\n{text}\n\n"
-                "Run it? Yes, or /new.",
-                _offer_keyboard(),
-            )
-            return
-        await _reply(
-            update,
-            "Talk here. I only start work after /new or after you confirm.\n"
-            "Try: What in my inbox is waiting on me this week.",
-        )
+        await _reply(update, compact_receipt(mission), kb)
 
     async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         _clear_await(context)
@@ -360,13 +344,14 @@ async def start_telegram() -> None:
         await _reply(
             update,
             "Orion Desk.\n\n"
-            "This is a conversation. I will not open a mission until you say so.\n\n"
-            "/new — start a mission\n"
-            "Or state an outcome and confirm with Yes.",
+            "Say the outcome. I gather context, do the safe work, "
+            "and ask before anything goes out.\n\n"
+            "Try: I have a meeting with Acme tomorrow at 2. Handle it.\n\n"
+            "Or tap New.",
+            _home_keyboard(),
         )
 
     async def new_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-        context.user_data.pop("pending_intent", None)
         context.user_data["await_new"] = True
         _tg_log("new")
         await _reply(update, "What should get done?")
@@ -376,22 +361,31 @@ async def start_telegram() -> None:
         user = _linked_user(update)
         if not user:
             _tg_log("status")
-            await _reply(update, "Nothing on the desk.")
+            await _reply(update, _unlink_copy(), _signin_keyboard())
             return
         rows = [m for m in MISSIONS.list_for_user(user["id"]) if not is_fake_receipt(m)]
         if not rows:
             _tg_log("status")
-            await _reply(update, "Nothing on the desk.")
+            await _reply(
+                update,
+                "Nothing on the desk. Say an outcome.",
+                _home_keyboard(),
+            )
             return
         _tg_log("status", rows[0].get("id"))
-        await _reply(update, compact_receipt(rows[0]))
+        ap = _needed(rows[0])
+        await _reply(
+            update,
+            compact_receipt(rows[0]),
+            _mission_keyboard(rows[0], ap["id"] if ap else None),
+        )
 
     async def approvals_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         _clear_await(context)
         user = _linked_user(update)
         if not user:
             _tg_log("approvals")
-            await _reply(update, "Nothing needs your signature.")
+            await _reply(update, _unlink_copy(), _signin_keyboard())
             return
         needed = list_needed(user["id"])
         if not needed:
@@ -411,20 +405,20 @@ async def start_telegram() -> None:
     async def desk_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         _clear_await(context)
         _tg_log("desk")
-        await _reply(update, _desk_url())
+        await _reply(update, "Web desk.", InlineKeyboardMarkup([[_url_btn("Open desk", _desk_url())]]))
 
     async def help_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         _clear_await(context)
         _tg_log("help")
         await _reply(
             update,
-            "/start — talk, do not run\n"
-            "/new — start a mission\n"
-            "/status — latest mission\n"
-            "/approvals — what needs you\n"
-            "/desk — open the web desk\n"
-            "/help — commands\n\n"
-            "Plain text is conversation. Yes runs a queued outcome.",
+            "/new — State an outcome\n"
+            "/status — Latest mission\n"
+            "/approvals — What needs you\n"
+            "/desk — Open the web desk\n"
+            "/help — Commands\n\n"
+            "or just type the outcome",
+            _home_keyboard(),
         )
 
     async def unknown_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -445,7 +439,7 @@ async def start_telegram() -> None:
         if context.user_data.pop("await_new", None):
             await _run_intent(update, intent)
             return
-        await _talk(update, context, intent)
+        await _run_intent(update, intent)
 
     async def on_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         q = update.callback_query
@@ -455,18 +449,12 @@ async def start_telegram() -> None:
         data = q.data or ""
         if data == "desk":
             _tg_log("callback-desk")
-            await _reply(update, _desk_url())
+            await _reply(update, "Web desk.", InlineKeyboardMarkup([[_url_btn("Open desk", _desk_url())]]))
             return
-        if data == "run:pending":
-            pending = (context.user_data.pop("pending_intent", None) or "").strip()
-            if not pending:
-                await _edit_or_send(update, "Nothing queued. Use /new.")
-                return
-            await _run_intent(update, pending)
-            return
-        if data == "run:cancel":
-            context.user_data.pop("pending_intent", None)
-            await _edit_or_send(update, "Dropped. Say the next outcome, or /new.")
+        if data == "new":
+            context.user_data["await_new"] = True
+            _tg_log("callback-new")
+            await _edit_or_send(update, "What should get done?")
             return
         if ":" not in data:
             _tg_log("callback")
@@ -480,7 +468,7 @@ async def start_telegram() -> None:
         user = _linked_user(update)
         if not user:
             _tg_log("callback")
-            await _edit_or_send(update, _unlink_copy())
+            await _edit_or_send(update, _unlink_copy(), _signin_keyboard())
             return
         try:
             if kind == "do":
@@ -500,13 +488,12 @@ async def start_telegram() -> None:
             await _edit_or_send(update, "Could not do that.")
             return
         _tg_log("callback", mission.get("id"))
-        waiting = mission.get("status") == "waiting_on_you"
-        if waiting:
-            ap = _needed(mission)
-            kb = _action_keyboard(ap["id"], open_desk=True) if ap else None
+        ap = _needed(mission) if mission.get("status") == "waiting_on_you" else None
+        kb = _mission_keyboard(mission, ap["id"] if ap else None)
+        if mission.get("status") == "waiting_on_you":
             await _edit_or_send(update, mission_reply(mission), kb)
             return
-        await _edit_or_send(update, compact_receipt(mission))
+        await _edit_or_send(update, compact_receipt(mission), kb)
 
     application = Application.builder().token(token).build()
     _APP = application
