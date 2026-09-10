@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
+import StudioNav from "../components/StudioNav";
 import StudioStage from "../components/StudioStage";
-import { useAuth } from "../lib/AuthContext";
 import ActionReceipt from "../components/ActionReceipt";
 import {
   ACME_EXAMPLE,
@@ -29,28 +29,12 @@ const LOOP = ["Intent", "Context", "Plan", "Action", "Verification"] as const;
 
 export default function Landing() {
   const receipt = receipts[ACME_ID];
-  const { user } = useAuth();
 
   return (
     <div className="mkt">
+      <StudioNav />
       <section className="studio" id="product">
         <StudioStage />
-        <header className="studio-nav">
-          <Link to="/" className="mkt-wordmark">
-            Orion <span>Desk</span>
-          </Link>
-          <nav>
-            <a href="#product">Product</a>
-            <a href="#receipt">Receipts</a>
-            <a href="#demo">Demo</a>
-            <a href="https://github.com/Davexinoh/orion-desk">GitHub</a>
-            {user ? (
-              <Link to="/desk/settings">{user.displayName}</Link>
-            ) : (
-              <Link to="/sign-in">Sign in</Link>
-            )}
-          </nav>
-        </header>
         <div className="studio-copy">
           <p className="studio-kicker">Orion Desk</p>
           <h1>Your intent becomes action.</h1>

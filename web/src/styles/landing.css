@@ -1,5 +1,9 @@
 /* Marketing only. Gate 4 tokens. No gold.css. */
 
+html {
+  scroll-padding-top: 56px;
+}
+
 .mkt {
   min-height: 100vh;
   background: var(--bg);
@@ -102,25 +106,99 @@
 }
 
 .studio-nav {
-  position: relative;
-  z-index: 2;
+  position: sticky;
+  top: 0;
+  z-index: 20;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  height: 64px;
-  padding: 0 28px;
+  height: 56px;
+  padding: 0 20px;
+  background: color-mix(in srgb, var(--bg) 82%, transparent);
+  border-bottom: 1px solid var(--line);
 }
 
-.studio-nav nav {
+.studio-nav-mark {
+  position: relative;
+  z-index: 1;
+  transition: letter-spacing 160ms var(--ease), color 160ms var(--ease);
+}
+
+.studio-nav-mark:hover {
+  letter-spacing: 0.02em;
+}
+
+.studio-nav-mark:active {
+  transform: translateY(1px);
+}
+
+.studio-nav-tray {
+  position: relative;
   display: flex;
-  gap: 18px;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--bg-elev-1);
+}
+
+.studio-nav-marker {
+  position: absolute;
+  top: 3px;
+  bottom: 3px;
+  left: 0;
+  border-radius: 6px;
+  background: var(--bg-elev-3);
+  border: 1px solid var(--line-strong);
+  pointer-events: none;
+  transition: transform 200ms var(--ease), width 200ms var(--ease);
+}
+
+.studio-nav-link {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  height: 28px;
+  padding: 0 12px;
+  border-radius: 6px;
   font-size: 13px;
   color: var(--text-muted);
+  transition: color 160ms var(--ease), transform 120ms var(--ease);
 }
 
-.studio-nav nav a:hover {
+.studio-nav-link:hover,
+.studio-nav-link.is-on {
   color: var(--text);
+}
+
+.studio-nav-link.is-press {
+  transform: translateY(1px);
+}
+
+.studio-nav-in {
+  display: inline-flex;
+  align-items: center;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--bg);
+  background: var(--text);
+  border: 1px solid var(--text);
+  transition: transform 120ms var(--ease), background 160ms var(--ease);
+}
+
+.studio-nav-in:hover {
+  background: var(--text-muted);
+  border-color: var(--text-muted);
+}
+
+.studio-nav-in:active {
+  transform: translateY(1px);
 }
 
 .studio-copy {
@@ -300,10 +378,14 @@
   }
 
   .studio-nav {
-    padding: 0 16px;
+    padding: 0 12px;
   }
 
-  .studio-nav nav a:nth-child(-n + 3) {
+  .studio-nav-tray .studio-nav-link:nth-of-type(-n + 3) {
+    display: none;
+  }
+
+  .studio-nav-marker {
     display: none;
   }
 
@@ -345,5 +427,12 @@
     animation: none;
     transition: none;
     transform: none;
+  }
+
+  .studio-nav-marker,
+  .studio-nav-link,
+  .studio-nav-in,
+  .studio-nav-mark {
+    transition: none;
   }
 }
