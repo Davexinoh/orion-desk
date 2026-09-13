@@ -174,6 +174,20 @@ def _unlink_copy() -> str:
     return "Open Sign in and Continue with Telegram first. Then say the outcome here."
 
 
+def _webhook_secret() -> str:
+    return (os.getenv("SESSION_SECRET") or "desk")[:64]
+
+
+async def ingest_telegram_update(payload: dict) -> None:
+    if _APP is None:
+        return
+    from telegram import Update
+
+    update = Update.de_json(payload, _APP.bot)
+    if update:
+        await _APP.process_update(update)
+
+
 async def start_telegram() -> None:
     global _APP, _STARTED
     if _STARTED or _APP is not None:
@@ -520,11 +534,23 @@ async def start_telegram() -> None:
 
     async def _runner() -> None:
         await application.initialize()
+        await application.start()
+        origin = (os.getenv("APP_ORIGIN") or "").rstrip("/")
+        webhook = origin.startswith("https://") and bool(
+            os.getenv("VERCEL") or os.getenv("TELEGRAM_WEBHOOK") == "1"
+        )
+        if webhook:
+            await application.bot.set_webhook(
+                url=f"{origin}/telegram/webhook",
+                secret_token=_webhook_secret(),
+                drop_pending_updates=False,
+            )
+            print("tg webhook")
+            return
         try:
             await application.bot.delete_webhook(drop_pending_updates=False)
         except Exception:
             pass
-        await application.start()
         await application.updater.start_polling()
         print("tg polling once")
 

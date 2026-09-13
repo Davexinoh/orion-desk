@@ -42,25 +42,17 @@ Vite must proxy:
 
 With no keys, the Acme demo still runs. Do not commit `.env` or `server/data`.
 
-## Railway one-service
+## Vercel (production)
 
-One service: build the web app, then uvicorn serves `web/dist` at `/` and the API at `/auth` `/missions` `/approvals` `/integrations`.
-
-Build:
+One container (`Dockerfile.vercel`): build the web app, then uvicorn serves `web/dist` at `/` and the API at `/auth` `/missions` `/approvals` `/integrations`. Telegram uses a webhook at `/telegram/webhook` when `APP_ORIGIN` is https on Vercel.
 
 ```bash
-npm ci --prefix web && npm run build --prefix web
+npx vercel --prod
 ```
 
-Start:
+Production refuses to boot without `SESSION_SECRET`. Cookie `Secure` is on when `APP_ORIGIN` is `https://`. CORS allows `APP_ORIGIN`. `/` and `/desk/m/acme-0491` stay public. SQLite under `server/data` is ephemeral on Vercel — missions reset when instances recycle.
 
-```bash
-python -m uvicorn app.main:app --host 0.0.0.0 --port $PORT --app-dir server
-```
-
-`nixpacks.toml` / `railway.toml` / `railpack.json` run those. Railway start command: `python -m uvicorn app.main:app --host 0.0.0.0 --port $PORT --app-dir server`. Production refuses to boot without `SESSION_SECRET`. Cookie `Secure` is on when `APP_ORIGIN` is `https://`. CORS allows `APP_ORIGIN`. `/` and `/desk/m/acme-0491` stay public.
-
-Env (names only):
+Env (names only, set in the Vercel project):
 
 ```
 APP_ORIGIN
@@ -80,11 +72,11 @@ OPENAI_API_KEY
 Operator sequence:
 
 1. @BotFather → `/newbot` → save token and `@username`
-2. `TELEGRAM_BOT_TOKEN` in Railway variables
+2. `TELEGRAM_BOT_TOKEN` in Vercel env
 3. `TELEGRAM_BOT_USERNAME` if the app reads it separately
-4. `APP_ORIGIN=https://<railway-host>` with no trailing slash
-5. BotFather → domain for Login Widget = `<railway-host>` only  
-   example: `orion-desk-production.up.railway.app`  
+4. `APP_ORIGIN=https://<vercel-host>` with no trailing slash
+5. BotFather → domain for Login Widget = `<vercel-host>` only  
+   example: `orion-desk.vercel.app`  
    not `https://`, not a path
 6. Redeploy
 7. Open `APP_ORIGIN/sign-in` → Continue with Telegram mints `desk_session`

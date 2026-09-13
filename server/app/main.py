@@ -17,6 +17,8 @@ load_dotenv(Path(__file__).resolve().parents[1] / ".env")
 
 
 def _production() -> bool:
+    if os.getenv("VERCEL") or os.getenv("VERCEL_ENV"):
+        return True
     if os.getenv("RAILWAY_ENVIRONMENT") or os.getenv("RAILWAY_ENVIRONMENT_NAME"):
         return True
     return (os.getenv("APP_ORIGIN") or "").startswith("https://")
@@ -41,7 +43,7 @@ from .mission_store import MISSIONS, PUBLIC_MISSION_IDS
 from .runner import run_mission
 from .session import COOKIE, SESSIONS, clear_session_cookie, set_session_cookie
 from .store import STORE
-from .telegram_bot import start_telegram
+from .telegram_bot import ingest_telegram_update, start_telegram, _webhook_secret
 from .users import USERS
 
 app = FastAPI(title="Orion Desk", version="0.1.0")
@@ -396,6 +398,18 @@ def integrations():
                 i["connected"] = True
                 i["status"] = "Bot is live."
     return snap
+
+
+@app.post("/telegram/webhook")
+async def telegram_webhook(request: Request):
+    import secrets as _secrets
+
+    got = request.headers.get("X-Telegram-Bot-Api-Secret-Token") or ""
+    if not _secrets.compare_digest(got, _webhook_secret()):
+        raise HTTPException(403, "Bad webhook.")
+    body = await request.json()
+    await ingest_telegram_update(body)
+    return {"ok": True}
 
 
 @app.on_event("startup")

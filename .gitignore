@@ -1,6 +1,7 @@
 .env
 .env.local
 .env.*.local
+.vercel
 server/data/
 *.db
 node_modules/

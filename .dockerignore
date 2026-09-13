@@ -1,0 +1,14 @@
+.git
+.vercel
+.env
+.env.*
+server/data
+web/node_modules
+web/dist
+tmp-ref
+.venv
+venv
+__pycache__
+*.pyc
+*.db
+node_modules
